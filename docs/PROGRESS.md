@@ -1,87 +1,94 @@
-# Tien do chang 0
+# Tiến độ DayTrail
 
-## Bang chung nguoi dung cung cap
+Tài liệu này ghi kết quả theo nguồn kiểm chứng. Yêu cầu API chi tiết nằm trong [API_CONTRACT.md](API_CONTRACT.md).
 
-- Backend typecheck, lint, build: PASS.
-- Frontend typecheck, build: PASS.
-- Frontend lint: 0 errors, 1 warning truoc khi tach App.tsx.
-- Tab Lich/Hanh trinh chuyen noi dung dung qua anh kiem tra.
-- Mobile 393 x 852 bi thu nho vi thieu viewport; favicon.ico tra 404.
+## Chặng 0 — Nền dự án
 
-## Thay doi trong luot nay
+### Bằng chứng người dùng cung cấp
 
-- Them meta viewport `width=device-width, initial-scale=1.0`; khong khoa zoom.
-- Them `public/favicon.svg` va khai bao trong `index.html`.
-- Them width responsive cho `html`, `body`, `#root`, `.app` va dieu chinh breakpoint mobile.
-- Bo cac file sinh tu build: `vite.config.js`, `vite.config.d.ts`, `tsconfig.node.tsbuildinfo`.
-- Them cac file sinh vao `.gitignore`; giu `vite.config.ts`.
+- Backend typecheck, lint và build: PASS.
+- Frontend typecheck và build: PASS.
+- Frontend lint từng có 1 warning `react-refresh/only-export-components` trước khi tách `App.tsx`.
+- Ảnh kiểm tra xác nhận tab Lịch/Hành trình chuyển nội dung đúng.
+- Ảnh mobile 393 × 852 từng cho thấy trang bị thu nhỏ vì thiếu viewport; favicon từng trả HTTP 404.
 
-## Kiem tra tu chay tren C:
+### Codex đã sửa và kiểm tra
 
-- Frontend `npm run typecheck`: PASS.
-- Frontend `npm run lint`: PASS, 0 errors/warnings.
-- Frontend `npm run build`: PASS.
-- Frontend `http://localhost:5173`: PASS, HTTP 200.
-- Frontend `http://localhost:5173/favicon.svg`: PASS, HTTP 200, `image/svg+xml`.
-- Chrome headless mobile 393 x 852: PASS. `innerWidth`, document, body, `#root` va `.app` deu 393px; khong tran ngang.
-- Chrome headless desktop 1440 x 900: PASS. `.app` rong 960px trong viewport va khong tran ngang.
-- Dieu huong trong browser: PASS. Tab Hanh trinh va Lich doi active state va noi dung dung.
-- Trang thai ket noi trong browser: PASS, hien thi `Da ket noi`.
-- Favicon trong browser: PASS, HTTP 200 va `image/svg+xml`.
-- Console/network trong lan reload kiem tra: PASS, khong co exception, console error hoac response >= 400.
+- Tách `App.tsx`; `main.tsx` chỉ khởi tạo và render React.
+- Thêm meta viewport không khóa zoom, favicon SVG và CSS responsive; loại file build có thể tái tạo khỏi source.
+- Frontend `typecheck`, `lint`, `build`: PASS; lint có 0 error/warning.
+- Chrome headless desktop 1440 × 900 và mobile 393 × 852: không tràn ngang, điều hướng hoạt động, favicon HTTP 200, hiển thị “Đã kết nối”, không có lỗi Console/Network liên quan ứng dụng.
+- Backend health API và kết nối frontend/backend: PASS.
 
-## Con thieu
+Kết luận: chặng 0 đã nghiệm thu.
 
-- Khong con blocker trong pham vi chang 0.
-- MongoDB, tai khoan, cong viec, lich nghiep vu, nhat ky, anh, hanh trinh day du va AI thuoc cac chang sau, chua trien khai.
+## Chặng 1A — MongoDB Atlas
 
-## Chang 1A - MongoDB Atlas
+### Đã triển khai
 
-### Da trien khai
+- Dùng Mongoose 9.10.4; nạp và kiểm tra biến môi trường trước khi kết nối.
+- Bắt buộc database `daytrail`; connect và ping thành công trước khi API mở cổng.
+- Thêm `GET /api/ready`, timeout connect/ping, graceful shutdown và `npm run db:verify` để ghi/đọc/xóa một document tạm.
+- `.env` bị Git bỏ qua; `.env.example` chỉ chứa placeholder.
 
-- Them Mongoose 9.10.4 (Node >=20.19); runtime Windows da kiem chung la Node 22.23.3, c-ares 1.34.8.
-- Tach doc/kiem tra bien moi truong va module ket noi MongoDB.
-- Ep dung database `daytrail`, connect + ping truoc khi API lang nghe.
-- Them `GET /api/ready`, timeout connect/ping va graceful shutdown.
-- Them `npm run db:verify` de ghi/doc/xoa mot document tam co ID rieng.
-- `.env` duoc ignore va khong duoc Git theo doi; `.env.example` chi co placeholder.
+### Lịch sử chẩn đoán
 
-### Ket qua tu chay
+- Node 22.23.2/c-ares 1.34.6 trên Windows từng làm Node chọn DNS `127.0.0.1`, khiến `mongodb+srv` lỗi `ECONNREFUSED`. Đây không phải lỗi router hoặc source DayTrail.
+- DNS công cộng chỉ được dùng trong tiến trình kiểm tra riêng: xác thực Atlas, ping và ghi/đọc/xóa trên `daytrail` đều PASS; document tạm đã được xóa.
+- Trong lúc chẩn đoán, cổng 4000 từng bị backend DayTrail cũ tại `D:\daytrail-api` chiếm. Tiến trình được xác định chính xác và chỉ dừng theo yêu cầu người dùng; cổng 4001 chỉ dùng tạm, không phải cơ chế tự đổi cổng.
+- Người dùng nâng lên Node 22.23.3/c-ares 1.34.8. Sau đó Node nhận DNS mặc định `192.168.0.1` và không cần workaround DNS trong source.
 
-- Backend typecheck, lint, build: PASS.
-- Thieu `MONGODB_URI`: PASS, bao `ConfigurationError` va exit code 1.
-- Test route doc lap: `/api/health` HTTP 200; `/api/ready` HTTP 503 khi database khong san sang.
-- Frontend voi API test tam: PASS, Chrome headless hien thi `Da ket noi`; source frontend khong thay doi.
-- Sau khi nguoi dung them `/daytrail` vao URI: metadata da xac nhan pathname database la `daytrail`; khong in URI hoac thong tin xac thuc.
-- Kiem tra cong: 4000 tung bi backend DayTrail cu tai `D:\daytrail-api` chiem; tien trinh da duoc xac dinh chinh xac va dung theo yeu cau nguoi dung. Cong 4001 chi tung duoc dat tam de chan doan, khong phai co che tu doi cong.
-- Cau hinh hien tai `C:\daytrail-api\.env` dat `PORT=4000`; frontend C: mac dinh goi `http://localhost:4000` va khong dung Vite proxy.
-- `.env` moi duoc nap khong bi bien cap tien trinh ghi de; database user moi xac thuc thanh cong va database khai bao la `daytrail`. Khong ghi thong tin xac thuc vao tai lieu.
-- Khoi dong backend C: tren cong 4000 qua DNS mac dinh: FAIL `ECONNREFUSED`, exit code 1 truoc khi mo cong.
-- DNS cong cong chi dung trong tien trinh kiem chung: xac thuc user moi PASS. Khong thay doi DNS may va khong hardcode DNS vao source.
-- Ket noi thuc te xac nhan database `daytrail`; ping PASS.
-- Ghi -> doc -> xoa mot document tam co ID rieng: PASS. Script kiem tra `deletedCount === 1` va chi xoa document cua lan kiem chung.
-- Backend kiem chung tren cong 4000: `/api/health` HTTP 200, `/api/ready` HTTP 200; CORS cho `http://localhost:5173` PASS.
-- Chrome headless tai `http://localhost:5173`: render PASS, hien thi `Da ket noi`, khong hien thi loi ket noi.
-- Nguyen nhan DNS da xac dinh la regression c-ares 1.34.6 trong Node 22.23.2 tren Windows, khong phai DNS router hay source DayTrail. Nguoi dung da nang Node len 22.23.3/c-ares 1.34.8; Node nhan DNS mac dinh `192.168.0.1`.
+### Bằng chứng người dùng cung cấp sau khi nâng Node
 
-### Bang chung nguoi dung cung cap sau khi nang Node
+- `npm run dev`: MongoDB sẵn sàng với database `daytrail`; API lắng nghe tại cổng 4000.
+- `/api/health` trả `status=ok`; `/api/ready` trả `status=ready`.
+- Frontend tại `http://localhost:5173` mở được trong trình duyệt.
 
-- `npm run dev` binh thuong: PASS; MongoDB connected/ready voi database `daytrail`, API lang nghe tai cong 4000.
-- `/api/health`: `status=ok`; `/api/ready`: `status=ready`.
-- Frontend tai `http://localhost:5173`: mo duoc trong trinh duyet.
+### Codex kiểm tra sau khi nâng Node
 
-### Kiem tra Codex sau khi nang Node
+- Backend cổng 4000 chạy từ `C:\daytrail-api`, không dùng preload hoặc DNS workaround.
+- `/api/health`, `/api/ready`, CORS và frontend hiển thị “Đã kết nối”: PASS.
+- Backend và frontend `typecheck`, `lint`, `build`: PASS.
+- `.env` bị ignore và không được Git theo dõi.
 
-- Tien trinh backend tren 4000 la `npm run dev`/`tsx watch` tu `C:\daytrail-api`; khong co preload hoac DNS workaround. Node v22.23.3, c-ares 1.34.8, DNS mac dinh `192.168.0.1`.
-- `/api/health` va `/api/ready`: HTTP 200; CORS cho `http://localhost:5173`: PASS.
-- Chrome headless: frontend render, hien thi `Da ket noi`; khong co Console error, Network failure hoac response >= 400.
-- Backend `typecheck`, `lint`, `build`: PASS.
-- Frontend `typecheck`, `lint`, `build`: PASS.
-- CRUD tam khong lap lai: bang chung truoc do da PASS tren database `daytrail` khi dung DNS cong cong chi trong tien trinh; document rieng da duoc xoa va `deletedCount === 1`.
-- `.env` duoc Git ignore va khong duoc theo doi.
-- Chang 1A dat dieu kien nghiem thu; toan bo chang 1 chua hoan tat.
+Kết luận: chặng 1A đã nghiệm thu. Kết quả này không có nghĩa toàn bộ chặng 1 đã hoàn tất.
 
-### Pham vi chua lam
+## Chặng 1B.1 — Backend đăng ký, đăng nhập và phiên
 
-- Dang ky/dang nhap, user model, authorization va cac tinh nang nghiep vu chua trien khai.
-- Chang 1 chua duoc danh dau hoan tat; day chi la chang 1A.
+### Đã triển khai
+
+- User gồm tên hiển thị, email chuẩn hóa/unique, bcrypt password hash và timestamps. Mật khẩu không bị trim hoặc cắt ngầm.
+- API register, login, me, logout; register không tự đăng nhập; login sai dùng một thông báo chung.
+- Session token ngẫu nhiên 256-bit; MongoDB chỉ lưu SHA-256, `userId`, `expiresAt`. Cookie dùng `HttpOnly`, `SameSite=Lax`, `Secure` trong production và mặc định tồn tại 7 ngày.
+- Middleware xác thực dùng lại được, kiểm tra `expiresAt` mỗi request; TTL index chỉ hỗ trợ dọn dữ liệu.
+- CORS hỗ trợ credentials với đúng frontend origin; POST auth yêu cầu JSON, kiểm tra Origin/Sec-Fetch-Site và có rate limit riêng cho register/login.
+- Unique index và lỗi MongoDB 11000 xử lý email trùng, kể cả hai request đồng thời.
+
+### Codex kiểm tra trước nghiệm thu
+
+- Backend `typecheck`, `lint`, `build`: PASS sau khi hoàn tất source và test.
+- Smoke test không dùng database: module load, health 200, ready 503 khi database không sẵn sàng, Origin sai 403, content type sai 415, validation 400 và rate limit 429: PASS.
+- Server development tự reload và lắng nghe lại trên 4000; Codex không dừng server người dùng.
+- Các kiểm tra không ghi dữ liệu trên server development: health/ready 200, `/me` chưa đăng nhập 401, Origin sai 403, content type sai 415, đăng ký sai 400, login sai 401 chung, logout không có phiên 204.
+
+### Bằng chứng người dùng cung cấp
+
+- `npm test` kết nối đúng database `daytrail_test`.
+- 8 test PASS; 0 fail/cancelled/skipped/todo.
+
+Bộ test bao phủ đăng ký hợp lệ/không hợp lệ, chuẩn hóa và trùng email, login đúng/sai, `/me`, session hết hạn, logout, token cũ, cookie development/production, CORS/CSRF, rate limit, dữ liệu nhạy cảm và health/ready.
+
+### Codex kiểm tra bổ sung
+
+- Đối chiếu assertion cookie: development có `HttpOnly`, `SameSite=Lax`, `Path`, `Max-Age` và không có `Secure`; production có `Secure`. MongoDB không lưu token thật.
+- Hai tiến trình backend kiểm thử riêng xác nhận cookie tạo ở tiến trình đầu vẫn gọi `/api/auth/me` HTTP 200 sau khi tiến trình thứ hai khởi động. Không tác động server người dùng.
+- Cleanup chỉ chạy sau khi xác nhận `daytrail_test`, chỉ xóa user có domain ngẫu nhiên của lần chạy và session theo đúng `userId`.
+- Sau kiểm tra: còn 0 user mang marker `*.stage1b.test`; phép kiểm chứng restart còn 0 user và 0 session tạm.
+
+Kết luận: chặng 1B.1 đã nghiệm thu.
+
+## Chưa triển khai
+
+- Giao diện đăng ký/đăng nhập.
+- API và giao diện công việc, lịch nghiệp vụ, nhật ký, ảnh và hành trình đầy đủ.
+- AI, deploy và các phần thuộc chặng sau.

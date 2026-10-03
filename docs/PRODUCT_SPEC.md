@@ -1,27 +1,42 @@
-# DayTrail - Dac ta san pham
+# DayTrail — Đặc tả sản phẩm
 
-DayTrail la ung dung quan ly cong viec ca nhan ket hop nhat ky, dung tren may tinh va dien thoai. Frontend va backend tach rieng; du lieu MongoDB tach theo tai khoan. Anh se nam trong object storage rieng (du kien Cloudflare R2), MongoDB chi luu metadata va khoa file.
+DayTrail là ứng dụng quản lý công việc cá nhân kết hợp nhật ký, dùng trên máy tính và điện thoại. Frontend và backend tách riêng; dữ liệu MongoDB được phân tách theo tài khoản. Ảnh sẽ nằm trong object storage (dịch vụ lưu file, dự kiến Cloudflare R2); MongoDB chỉ lưu metadata và khóa file.
 
-## Hom nay
+## Hôm nay
 
-Gom danh sach cong viec, nhat ky ngay va tong quan ngay. Moi cong viec hien thi trang thai, co menu sua, xoa, chuyen ngay va mo bang chi tiet gom thong tin, note, anh va o hoan thanh. Note va anh tuy chon; chi chinh sua sau khi hoan thanh. Khong tao cong viec truc tiep tai Hom nay.
+Màn hình gồm danh sách công việc, nhật ký ngày và tổng quan ngày. Mỗi công việc hiển thị trạng thái, có menu sửa, xóa, chuyển ngày và bảng chi tiết gồm thông tin, ghi chú, ảnh và ô hoàn thành.
 
-## Lich
+Ghi chú và ảnh là tùy chọn, chỉ được chỉnh sửa sau khi công việc hoàn thành. Không tạo công việc trực tiếp tại màn hình Hôm nay.
 
-Lich la noi tao cong viec cho ngay dang chon. Form gom ten, gio bat dau, gio ket thuc, uu tien, nhom, mo ta va lap lai; ngay lay tu lich. Co che do nam, thang, tuan, ngay va giao dien desktop/mobile.
+## Lịch
 
-Nam hien thi 12 thang va danh dau ngay co du lieu. Thang hien thi phan tram hoan thanh cho ngay da qua, cong viec hoac so viec cho ngay tuong lai. Tuan hien thi cong viec cung trang thai. Ngay hien thi chi tiet cong viec, note, anh va nhat ky. Ngay khong co viec khong tinh la 0% hoan thanh.
+Lịch là nơi tạo công việc cho ngày đang chọn. Form gồm tên, giờ bắt đầu, giờ kết thúc, mức ưu tiên, nhóm, mô tả và quy tắc lặp; ngày được lấy từ lịch. Có chế độ năm, tháng, tuần, ngày và giao diện riêng phù hợp desktop/mobile.
 
-Lap lai gom khong lap, hang ngay, chon ngay trong tuan va hang tuan. Moi lan xuat hien co trang thai, note va anh rieng. Sua/xoa co pham vi lan nay hoac lan nay va cac lan sau; khong sua lich su, khong tao vo han ban ghi tuong lai, khong tu chuyen viec chua xong sang hom sau. Chuyen ngay giu note va anh.
+- Năm: hiển thị 12 tháng và đánh dấu ngày có dữ liệu.
+- Tháng: hiển thị phần trăm hoàn thành cho ngày đã qua; hiển thị công việc hoặc số việc cho ngày tương lai.
+- Tuần: hiển thị công việc cùng trạng thái.
+- Ngày: hiển thị chi tiết công việc, ghi chú, ảnh và nhật ký.
 
-## Hanh trinh
+Ngày không có công việc không được tính là 0% hoàn thành.
 
-Timeline nam/thang/tuan/ngay de doc lai cong viec, note, anh va nhat ky; co khoanh khac noi bat. Giai doan ca nhan gom ten, khoang ngay, anh bia, loi gioi thieu va tong ket. Lien ket du lieu goc, khong sao chep nhat ky.
+Lặp lại gồm: không lặp, hằng ngày, chọn ngày trong tuần và hằng tuần. Mỗi lần xuất hiện có trạng thái, ghi chú và ảnh riêng. Sửa/xóa có phạm vi “lần này” hoặc “lần này và các lần sau”; không sửa lịch sử, không tạo vô hạn bản ghi tương lai và không tự chuyển việc chưa xong sang hôm sau. Chuyển ngày phải giữ ghi chú và ảnh.
 
-## Tai khoan va du lieu
+## Hành trình
 
-Dang ky, dang nhap, dang xuat va khoi phuc phien. Mat khau phai duoc hash; phien an toan; backend kiem tra quyen so huu tren moi tai nguyen. Khong luu token dang nhap trong localStorage. Nhat ky va anh mac dinh rieng tu. Ngay ca nhan theo Asia/Ho_Chi_Minh, phan biet ngay lich, gio dia phuong va timestamp. Tu luu, xu ly loi, thung rac va sao luu nam trong lo trinh V1.
+Timeline (dòng thời gian) theo năm/tháng/tuần/ngày giúp đọc lại công việc, ghi chú, ảnh và nhật ký; có thể đánh dấu khoảnh khắc nổi bật.
 
-## Ngoai pham vi chang 0
+Một giai đoạn cá nhân gồm tên, khoảng ngày, ảnh bìa, lời giới thiệu và tổng kết. Giai đoạn liên kết đến dữ liệu gốc, không sao chép nhật ký.
 
-MongoDB, R2, tai khoan, nghiep vu cong viec/lich/nhat ky/anh/hanh trinh va AI chua trien khai. AI chi nam trong roadmap sau V1.
+## Tài khoản và dữ liệu
+
+Sản phẩm hỗ trợ đăng ký, đăng nhập, đăng xuất và khôi phục phiên. Mật khẩu phải được hash bằng thuật toán chuyên dụng; phiên phải an toàn; backend kiểm tra quyền sở hữu trên mỗi tài nguyên. Không lưu token đăng nhập trong `localStorage`.
+
+Nhật ký và ảnh mặc định là riêng tư. Ngày cá nhân dùng múi giờ `Asia/Ho_Chi_Minh`, phân biệt ngày lịch, giờ địa phương và timestamp. Tự lưu, xử lý lỗi, thùng rác và sao lưu nằm trong lộ trình V1.
+
+## Trạng thái triển khai
+
+- Chặng 0 và kết nối MongoDB của chặng 1A đã nghiệm thu.
+- Backend đăng ký, đăng nhập và quản lý phiên của chặng 1B.1 đã nghiệm thu.
+- Giao diện auth, công việc, lịch nghiệp vụ, nhật ký, ảnh, hành trình đầy đủ và AI chưa được triển khai.
+
+Chi tiết bằng chứng nằm trong [PROGRESS.md](PROGRESS.md); thứ tự triển khai nằm trong [ROADMAP.md](ROADMAP.md).
