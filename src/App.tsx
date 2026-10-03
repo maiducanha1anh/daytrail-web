@@ -1,31 +1,180 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { AuthPanel } from './AuthPanel'
+import { ApiError, dayTrailApi, type DayTrailUser } from './api'
 
-type HealthState = '\u0110ang ki\u1ec3m tra' | '\u0110\u00e3 k\u1ebft n\u1ed1i' | 'Ch\u01b0a k\u1ebft n\u1ed1i'
-type Section = 'H\u00f4m nay' | 'L\u1ecbch' | 'H\u00e0nh tr\u00ecnh'
+type HealthState = 'Đang kiểm tra' | 'Đã kết nối' | 'Chưa kết nối'
+type Section = 'Hôm nay' | 'Lịch' | 'Hành trình'
+type SessionState =
+  | { status: 'checking' }
+  | { status: 'error'; message: string }
+  | { status: 'guest'; message?: string }
+  | { status: 'authenticated'; user: DayTrailUser }
 
-const apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000'
 const sections: Record<Section, { title: string; description: string }> = {
-  'H\u00f4m nay': { title: 'Khung n\u1ec1n \u0111\u00e3 s\u1eb5n s\u00e0ng', description: 'Danh s\u00e1ch c\u00f4ng vi\u1ec7c, nh\u1eadt k\u00fd ng\u00e0y v\u00e0 t\u1ed5ng quan ng\u00e0y s\u1ebd \u0111\u01b0\u1ee3c tri\u1ec3n khai \u1edf c\u00e1c ch\u1eb7ng ti\u1ebfp theo.' },
-  'L\u1ecbch': { title: 'L\u1ecbch \u0111ang \u0111\u01b0\u1ee3c chu\u1ea9n b\u1ecb', description: 'T\u1ea1o c\u00f4ng vi\u1ec7c theo ng\u00e0y, c\u00e1c ch\u1ebf \u0111\u1ed9 xem l\u1ecbch v\u00e0 l\u1eb7p l\u1ea1i ch\u01b0a tri\u1ec3n khai trong ch\u1eb7ng 0.' },
-  'H\u00e0nh tr\u00ecnh': { title: 'H\u00e0nh tr\u00ecnh \u0111ang \u0111\u01b0\u1ee3c chu\u1ea9n b\u1ecb', description: 'Timeline, kho\u1ea3nh kh\u1eafc n\u1ed5i b\u1eadt v\u00e0 c\u00e1c giai \u0111o\u1ea1n c\u00e1 nh\u00e2n s\u1ebd \u0111\u01b0\u1ee3c tri\u1ec3n khai sau H\u00f4m nay v\u00e0 L\u1ecbch.' },
+  'Hôm nay': { title: 'Khung nền đã sẵn sàng', description: 'Danh sách công việc, nhật ký ngày và tổng quan ngày sẽ được triển khai ở các chặng tiếp theo.' },
+  'Lịch': { title: 'Lịch đang được chuẩn bị', description: 'Tạo công việc theo ngày, các chế độ xem lịch và lặp lại chưa được triển khai trong chặng này.' },
+  'Hành trình': { title: 'Hành trình đang được chuẩn bị', description: 'Timeline, khoảnh khắc nổi bật và các giai đoạn cá nhân sẽ được triển khai sau Hôm nay và Lịch.' },
+}
+
+function HealthBadge() {
+  const [health, setHealth] = useState<HealthState>('Đang kiểm tra')
+
+  useEffect(() => {
+    const controller = new AbortController()
+    dayTrailApi.health(controller.signal)
+      .then(() => setHealth('Đã kết nối'))
+      .catch((error: unknown) => {
+        if (!(error instanceof Error && error.name === 'AbortError')) setHealth('Chưa kết nối')
+      })
+    return () => controller.abort()
+  }, [])
+
+  return <span className={`status ${health === 'Đã kết nối' ? 'ok' : health === 'Chưa kết nối' ? 'error' : ''}`}>
+    <span aria-hidden="true">●</span> {health}
+  </span>
+}
+
+function BrandHeader({ actions }: { actions?: React.ReactNode }) {
+  return <header className="site-header">
+    <div className="brand"><span className="mark" aria-hidden="true">D</span><span>DayTrail</span></div>
+    <div className="header-actions"><HealthBadge />{actions}</div>
+  </header>
+}
+
+function SessionChecking() {
+  return <main className="app auth-layout">
+    <BrandHeader />
+    <section className="session-state" aria-live="polite" aria-busy="true">
+      <span className="spinner" aria-hidden="true" />
+      <h1>Đang kiểm tra phiên đăng nhập</h1>
+      <p>DayTrail đang xác nhận tài khoản của bạn.</p>
+    </section>
+  </main>
+}
+
+function SessionError({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return <main className="app auth-layout">
+    <BrandHeader />
+    <section className="session-state error-state" role="alert">
+      <span className="state-icon" aria-hidden="true">!</span>
+      <h1>Chưa thể kiểm tra phiên</h1>
+      <p>{message}</p>
+      <button className="primary-button compact" type="button" onClick={onRetry}>Thử lại</button>
+    </section>
+  </main>
+}
+
+function GuestView({ message, onAuthenticated }: { message?: string; onAuthenticated: (user: DayTrailUser) => void }) {
+  return <main className="app auth-layout">
+    <BrandHeader />
+    <div className="auth-page">
+      <section className="auth-intro" aria-labelledby="welcome-title">
+        <p className="eyebrow">Không gian cá nhân</p>
+        <h2 id="welcome-title">Mỗi ngày một bước tiến.</h2>
+        <p>Nơi công việc, nhật ký và hành trình của bạn được giữ cùng nhau — riêng tư theo từng tài khoản.</p>
+        <div className="foundation-note"><span aria-hidden="true">✦</span><span>Khung sản phẩm đã sẵn sàng. Nội dung nghiệp vụ sẽ được bổ sung ở các chặng tiếp theo.</span></div>
+      </section>
+      <AuthPanel onAuthenticated={onAuthenticated} sessionMessage={message} />
+    </div>
+    <Footer />
+  </main>
+}
+
+function AuthenticatedView({ user, onLogout, logoutError, loggingOut }: {
+  user: DayTrailUser
+  onLogout: () => void
+  logoutError?: string
+  loggingOut: boolean
+}) {
+  const [section, setSection] = useState<Section>('Hôm nay')
+  const current = sections[section]
+  return <main className="app">
+    <BrandHeader actions={<div className="account-actions">
+      <span className="user-name" title={user.email}>Xin chào, <strong>{user.displayName}</strong></span>
+      <button className="logout-button" type="button" onClick={onLogout} disabled={loggingOut}>{loggingOut ? 'Đang đăng xuất…' : 'Đăng xuất'}</button>
+    </div>} />
+    {logoutError && <div className="form-message error logout-error" role="alert">{logoutError}</div>}
+    <section className="hero"><p className="eyebrow">Không gian cá nhân</p><h1>Mỗi ngày một bước tiến.</h1><p className="muted">Nơi công việc, nhật ký và hành trình của bạn được giữ cùng nhau.</p></section>
+    <nav className="tabs" aria-label="Điều hướng chính">{(Object.keys(sections) as Section[]).map((item) => <button key={item} className={section === item ? 'active' : ''} onClick={() => setSection(item)} aria-current={section === item ? 'page' : undefined}>{item}</button>)}</nav>
+    <section className="card"><div className="card-icon" aria-hidden="true">✦</div><h2>{current.title}</h2><p>{current.description}</p><span className="badge">Nội dung nền · Chưa có nghiệp vụ</span></section>
+    <Footer />
+  </main>
+}
+
+function Footer() {
+  return <footer>DayTrail · Dữ liệu cá nhân, riêng tư theo từng tài khoản</footer>
 }
 
 export function App() {
-  const [health, setHealth] = useState<HealthState>('\u0110ang ki\u1ec3m tra')
-  const [section, setSection] = useState<Section>('H\u00f4m nay')
+  const [session, setSession] = useState<SessionState>({ status: 'checking' })
+  const [loggingOut, setLoggingOut] = useState(false)
+  const [logoutError, setLogoutError] = useState<string>()
+  const requestIdRef = useRef(0)
+  const controllerRef = useRef<AbortController | undefined>(undefined)
+
+  const checkSession = useCallback((controller: AbortController, requestId: number) => {
+    dayTrailApi.me(controller.signal)
+      .then(({ user }) => {
+        if (!controller.signal.aborted && requestId === requestIdRef.current) setSession({ status: 'authenticated', user })
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted || requestId !== requestIdRef.current) return
+        if (error instanceof ApiError && error.status === 401) {
+          setSession({ status: 'guest', message: 'Bạn chưa đăng nhập hoặc phiên trước đã hết hạn.' })
+          return
+        }
+        setSession({ status: 'error', message: error instanceof ApiError && error.kind === 'network' ? 'Không thể kết nối đến backend. Hãy kiểm tra máy chủ rồi thử lại.' : 'Máy chủ chưa thể kiểm tra phiên. Vui lòng thử lại.' })
+      })
+  }, [])
+
+  const restoreSession = useCallback(() => {
+    controllerRef.current?.abort()
+    const controller = new AbortController()
+    controllerRef.current = controller
+    const requestId = ++requestIdRef.current
+    setSession({ status: 'checking' })
+    checkSession(controller, requestId)
+  }, [checkSession])
+
   useEffect(() => {
     const controller = new AbortController()
-    fetch(`${apiBase}/api/health`, { signal: controller.signal })
-      .then((response) => response.ok ? setHealth('\u0110\u00e3 k\u1ebft n\u1ed1i') : Promise.reject(new Error('Health request failed')))
-      .catch((error: unknown) => { if (error instanceof Error && error.name !== 'AbortError') setHealth('Ch\u01b0a k\u1ebft n\u1ed1i') })
-    return () => controller.abort()
-  }, [])
-  const current = sections[section]
-  return <main className="app">
-    <header><div className="brand"><span className="mark">D</span><span>DayTrail</span></div><span className={`status ${health === '\u0110\u00e3 k\u1ebft n\u1ed1i' ? 'ok' : ''}`}>&#9679; {health}</span></header>
-    <section className="hero"><p className="eyebrow">Kh&#244;ng gian c&#225; nh&#226;n</p><h1>M&#7895;i ng&#224;y m&#7897;t b&#432;&#7899;c ti&#7871;n.</h1><p className="muted">N&#417;i c&#244;ng vi&#7879;c, nh&#7853;t k&#253; v&#224; h&#224;nh tr&#236;nh c&#7911;a b&#7841;n &#273;&#432;&#7907;c gi&#7919; c&#249;ng nhau.</p></section>
-    <nav className="tabs" aria-label="&#272;i&#7873;u h&#432;&#7899;ng ch&#237;nh">{(Object.keys(sections) as Section[]).map((item) => <button key={item} className={section === item ? 'active' : ''} onClick={() => setSection(item)} aria-current={section === item ? 'page' : undefined}>{item}</button>)}</nav>
-    <section className="card"><div className="card-icon">&#10022;</div><h2>{current.title}</h2><p>{current.description}</p><span className="badge">Ch&#7863;ng 0 &middot; N&#7873;n d&#7921; &#225;n</span></section>
-    <footer>DayTrail &middot; D&#7919; li&#7879;u c&#225; nh&#226;n, ri&#234;ng t&#432; theo t&#7915;ng t&#224;i kho&#7843;n</footer>
-  </main>
+    controllerRef.current = controller
+    const requestId = ++requestIdRef.current
+    checkSession(controller, requestId)
+    return () => {
+      requestIdRef.current += 1
+      controllerRef.current?.abort()
+    }
+  }, [checkSession])
+
+  function handleAuthenticated(user: DayTrailUser) {
+    controllerRef.current?.abort()
+    requestIdRef.current += 1
+    setLogoutError(undefined)
+    setSession({ status: 'authenticated', user })
+  }
+
+  async function handleLogout() {
+    if (loggingOut) return
+    setLoggingOut(true)
+    setLogoutError(undefined)
+    controllerRef.current?.abort()
+    const controller = new AbortController()
+    controllerRef.current = controller
+    const requestId = ++requestIdRef.current
+    try {
+      await dayTrailApi.logout(controller.signal)
+      if (!controller.signal.aborted && requestId === requestIdRef.current) setSession({ status: 'guest', message: 'Bạn đã đăng xuất an toàn.' })
+    } catch (error: unknown) {
+      if (controller.signal.aborted || requestId !== requestIdRef.current) return
+      setLogoutError(error instanceof ApiError && error.kind === 'network' ? 'Không thể kết nối đến máy chủ nên chưa xác nhận đăng xuất. Vui lòng thử lại.' : 'Đăng xuất chưa thành công. Vui lòng thử lại.')
+    } finally {
+      if (!controller.signal.aborted && requestId === requestIdRef.current) setLoggingOut(false)
+    }
+  }
+
+  if (session.status === 'checking') return <SessionChecking />
+  if (session.status === 'error') return <SessionError message={session.message} onRetry={restoreSession} />
+  if (session.status === 'guest') return <GuestView message={session.message} onAuthenticated={handleAuthenticated} />
+  return <AuthenticatedView user={session.user} onLogout={handleLogout} logoutError={logoutError} loggingOut={loggingOut} />
 }

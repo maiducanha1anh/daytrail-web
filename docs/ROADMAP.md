@@ -10,9 +10,9 @@ Frontend/backend chạy được, health API, giao diện responsive, điều h�
 
 - 1A — Kết nối MongoDB và readiness: đã nghiệm thu.
 - 1B.1 — Backend đăng ký, đăng nhập và phiên bền vững: đã nghiệm thu.
-- Phần tiếp theo — Giao diện auth và luồng người dùng: chưa bắt đầu.
+- 1B.2 — Giao diện đăng ký, đăng nhập, khôi phục phiên và đăng xuất: đã triển khai và kiểm chứng, đang chờ duyệt.
 
-Điều kiện hoàn tất toàn chặng: backend và frontend auth hoạt động cùng nhau, quyền truy cập được kiểm tra và kiểm thử bảo mật/phiên đều đạt. Không đánh dấu toàn bộ chặng 1 hoàn tất chỉ từ kết quả 1A hoặc 1B.1.
+Điều kiện hoàn tất toàn chặng: backend và frontend auth hoạt động cùng nhau, quyền truy cập được kiểm tra và kiểm thử bảo mật/phiên đều đạt. Chưa tự đánh dấu toàn bộ chặng 1 hoàn tất khi chưa có yêu cầu chốt riêng.
 
 ## Chặng 2 — Công việc và Hôm nay
 

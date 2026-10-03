@@ -87,8 +87,39 @@ Bộ test bao phủ đăng ký hợp lệ/không hợp lệ, chuẩn hóa và tr
 
 Kết luận: chặng 1B.1 đã nghiệm thu.
 
-## Chưa triển khai
+## Chặng 1B.2 — Giao diện tài khoản
 
-- Giao diện đăng ký/đăng nhập.
-- API và giao diện công việc, lịch nghiệp vụ, nhật ký, ảnh và hành trình đầy đủ.
-- AI, deploy và các phần thuộc chặng sau.
+### Đã triển khai
+
+- Form đăng ký gồm tên hiển thị, email, mật khẩu và xác nhận mật khẩu; form đăng nhập gồm email và mật khẩu.
+- Có chuyển chế độ, hiện/ẩn mật khẩu, label và `autocomplete` phù hợp; quy tắc mật khẩu khớp backend và không trim mật khẩu.
+- Đăng ký thành công chuyển về đăng nhập, điền sẵn email và xóa mật khẩu. Lỗi validation, email trùng, sai thông tin đăng nhập, HTTP 429, lỗi server và lỗi mạng có thông báo riêng.
+- Lớp API dùng `credentials: "include"`; không lưu token hoặc mật khẩu trong Local Storage/Session Storage.
+- State phiên gồm đang kiểm tra, chưa đăng nhập, đã đăng nhập và lỗi chưa xác định được phiên. `/api/auth/me` khôi phục phiên khi mở/tải lại trang; lỗi mạng có nút thử lại và không bị coi là đã đăng xuất.
+- Login thành công mở khung Hôm nay/Lịch/Hành trình, hiển thị tên người dùng và nút Đăng xuất. Logout lỗi giữ nguyên trạng thái đăng nhập; logout thành công trở về form.
+- Dùng `AbortController`, request ID và khóa submit đồng bộ để request cũ hoặc thao tác nhấn nhiều lần không cập nhật sai trạng thái.
+
+### Codex kiểm tra
+
+- Frontend `npm run typecheck`, `npm run lint`, `npm run build`: PASS.
+- Trong quá trình kiểm tra trình duyệt, phát hiện và sửa lỗi validation tạo key `password` có giá trị `undefined`, làm form hợp lệ dừng trước khi gọi API.
+- Chrome headless dùng frontend test cổng 5174 và backend test cổng 4012; backend test xác nhận database thực tế là `daytrail_test`. Server người dùng không bị dừng hoặc đổi cấu hình.
+- Luồng đăng ký → đăng nhập → `/me` → tải lại → đăng xuất: PASS. Phiên được khôi phục qua reload và form đăng nhập không nhấp nháy trước nội dung riêng tư.
+- Sai mật khẩu, email trùng, xác nhận mật khẩu khác nhau, phiên hết hạn, lỗi mạng, thử lại và logout thất bại: PASS.
+- Nhấn submit hai lần liên tiếp chỉ tạo một request `POST`: PASS.
+- Cookie hoạt động qua reload; `document.cookie` không đọc được token; Local Storage và Session Storage đều không chứa dữ liệu auth: PASS.
+- Điều hướng nền, thao tác bàn phím, desktop 1440 px và mobile 390 px: PASS; `#root` khớp viewport và không tràn ngang.
+- Không có lỗi Console/runtime ngoài các response/lỗi mạng được chủ động tạo để kiểm tra: PASS.
+- Cleanup trên `daytrail_test`: còn 0 user và 0 session của tài khoản tạm; không drop database/collection.
+- Nhánh hiển thị lỗi HTTP 429 đã được đối chiếu trong source; chưa chủ động kích hoạt HTTP 429 bằng trình duyệt ở chặng 1B.2. Rate limit backend đã được kiểm thử ở chặng 1B.1.
+
+### Bằng chứng người dùng cung cấp
+
+- Người dùng đã thử giao diện tài khoản và xác nhận hoạt động thành công.
+
+### Phạm vi chưa làm
+
+- Quên mật khẩu, xác minh email, đăng nhập Google và chỉnh hồ sơ.
+- Nghiệp vụ công việc, lịch, nhật ký, ảnh, hành trình và AI.
+
+Kết luận: chặng 1B.2 đã được người dùng duyệt. Thay đổi được phép commit và push trong nhiệm vụ chốt chặng; chưa deploy.
