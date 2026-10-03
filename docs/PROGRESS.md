@@ -123,3 +123,35 @@ Kết luận: chặng 1B.1 đã nghiệm thu.
 - Nghiệp vụ công việc, lịch, nhật ký, ảnh, hành trình và AI.
 
 Kết luận: chặng 1B.2 đã được người dùng duyệt. Thay đổi được phép commit và push trong nhiệm vụ chốt chặng; chưa deploy.
+
+## Chặng 2A — Backend công việc theo ngày
+
+### Đã triển khai
+
+- Model `Task` thuộc đúng `userId` lấy từ session; response không trả chủ sở hữu.
+- Ngày lưu nguyên chuỗi lịch địa phương `YYYY-MM-DD`; giờ dùng `HH:mm`, cùng ngày và giờ kết thúc phải sau giờ bắt đầu.
+- Công việc gồm tên, giờ, ưu tiên, nhóm, mô tả, note riêng, `repeat`, trạng thái và timestamps. Chặng này chỉ chấp nhận `repeat="none"`.
+- API tạo, danh sách ngày/khoảng ngày có phân trang, chi tiết, sửa nội dung, chuyển ngày, đặt hoàn thành rõ ràng, xóa và tổng quan ngày.
+- Danh sách sắp theo giờ bắt đầu rồi `_id`; khoảng ngày tối đa 366 ngày, `limit` mặc định 50 và tối đa 100.
+- Hoàn thành đặt `completedAt` UTC; bỏ hoàn thành đặt `null`. Gửi lại cùng trạng thái giữ nguyên `completedAt`.
+- Mọi truy vấn/sửa/xóa giới hạn theo `userId`; ID sai trả 400, không tồn tại hoặc thuộc user khác trả 404.
+- Thao tác ghi dùng bảo vệ Origin/JSON hiện có. Có index ghép theo chủ sở hữu, ngày, giờ và ID.
+
+### Codex kiểm tra
+
+- Backend `npm run typecheck`: PASS.
+- Backend `npm run lint`: PASS.
+- Backend `npm run build`: PASS.
+- Toàn bộ `npm test` chạy trên database thực tế `daytrail_test`: 17 PASS, 0 fail/cancelled/skipped/todo; gồm 8 test auth và 9 test công việc.
+- Test công việc bao phủ tạo/đọc/sửa/chuyển ngày/note/hoàn thành/bỏ hoàn thành/xóa, validation ngày nhuận/ngày/giờ/enum/kiểu/độ dài, lọc/sắp xếp/phân trang, tổng quan và cách ly hai tài khoản.
+- Kiểm tra chống sửa `userId`, `completedAt`, timestamps và các trường có endpoint riêng: PASS.
+- Gửi `completed=true` hai lần giữ nguyên `completedAt`: PASS. Note sau khi hoàn thành và chuyển ngày giữ nguyên nội dung/trạng thái: PASS.
+- Auth hiện có: 8/8 PASS.
+- Cleanup chỉ xóa task, session và user có domain riêng của run sau khi xác nhận `daytrail_test`; không drop database/collection.
+
+### Chưa triển khai
+
+- Frontend công việc và màn hình Hôm nay.
+- Công việc lặp, ảnh, nhật ký ngày và Hành trình.
+
+Kết luận hiện tại: chặng 2A đã được người dùng duyệt. Các thay đổi được phép commit và push trong nhiệm vụ chốt chặng; chưa deploy.

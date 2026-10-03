@@ -81,3 +81,127 @@ Cookie phiên có tên `daytrail_session`, dùng `HttpOnly`, `SameSite=Lax`, `Pa
 Gửi JSON, có thể là `{}`. API xóa session hiện tại nếu có, xóa cookie và trả HTTP 204. Gọi lại với cookie cũ vẫn trả HTTP 204; cookie/token cũ không thể dùng lại cho `/api/auth/me`.
 
 Hướng dẫn chạy thử bằng PowerShell nằm trong `C:\daytrail-api\README.md`.
+
+## Công việc theo ngày — chặng 2A
+
+Mọi endpoint dưới `/api/tasks` yêu cầu cookie phiên hợp lệ. Thiếu hoặc hết phiên trả HTTP 401. ID sai định dạng trả HTTP 400; công việc không tồn tại hoặc thuộc user khác trả HTTP 404.
+
+Các thao tác `POST`, `PATCH`, `DELETE` yêu cầu `Content-Type: application/json` và tuân theo kiểm tra Origin như API auth. `userId` luôn lấy từ session, không nhận từ body.
+
+### Quy tắc dữ liệu
+
+- `date`: ngày lịch địa phương đúng định dạng `YYYY-MM-DD`; phải là ngày thực sự tồn tại và không bị đổi sang UTC.
+- `startTime`, `endTime`: định dạng `HH:mm`; cùng một ngày và `endTime` phải sau `startTime`.
+- `name`: bắt buộc, sau khi trim dài 1–120 ký tự.
+- `priority`: `low`, `normal` hoặc `high`; mặc định `normal`.
+- `group`: chuỗi tùy chọn tối đa 80 ký tự.
+- `description`: chuỗi tùy chọn tối đa 2.000 ký tự.
+- `note`: chuỗi tùy chọn tối đa 5.000 ký tự, tách biệt với mô tả kế hoạch.
+- `repeat`: chặng này chỉ nhận `none`; giá trị khác trả HTTP 400.
+- `completed`: mặc định `false`. `completedAt` là timestamp UTC khi hoàn thành và là `null` khi chưa hoàn thành.
+- Trường tùy chọn `group`, `description`, `note` nhận chuỗi hoặc `null`; chuỗi rỗng sau khi trim được lưu thành `null`.
+- Client không được gửi hoặc sửa `userId`, `completedAt`, `createdAt`, `updatedAt`. Ngày và trạng thái có endpoint riêng.
+
+Task trả về có dạng:
+
+```json
+{
+  "id": "<object-id>",
+  "date": "2026-10-04",
+  "name": "Lập kế hoạch ngày",
+  "startTime": "09:00",
+  "endTime": "10:00",
+  "priority": "normal",
+  "group": "Cá nhân",
+  "description": "Mô tả kế hoạch",
+  "note": null,
+  "repeat": "none",
+  "completed": false,
+  "completedAt": null,
+  "createdAt": "<timestamp-UTC>",
+  "updatedAt": "<timestamp-UTC>"
+}
+```
+
+Response không chứa `userId`.
+
+### `POST /api/tasks`
+
+```json
+{
+  "date": "2026-10-04",
+  "name": "Lập kế hoạch ngày",
+  "startTime": "09:00",
+  "endTime": "10:00",
+  "priority": "normal",
+  "group": "Cá nhân",
+  "description": "Mô tả kế hoạch",
+  "note": null,
+  "repeat": "none"
+}
+```
+
+- HTTP 201: `{ "task": { ... } }`.
+- HTTP 400: body, ngày, giờ, enum hoặc giới hạn văn bản không hợp lệ; có trường không được hỗ trợ.
+
+### `GET /api/tasks`
+
+Chọn đúng một kiểu truy vấn:
+
+- Một ngày: `?date=2026-10-04&page=1&limit=50`
+- Khoảng ngày: `?from=2026-10-01&to=2026-10-31&page=1&limit=50`
+
+Khoảng ngày tối đa 366 ngày. `page` mặc định 1; `limit` mặc định 50 và tối đa 100. Danh sách sắp theo `startTime`, sau đó `_id` để ổn định.
+
+```json
+{
+  "tasks": [],
+  "pagination": { "page": 1, "limit": 50, "total": 0, "pages": 0 }
+}
+```
+
+### `GET /api/tasks/:id`
+
+HTTP 200: `{ "task": { ... } }`.
+
+### `PATCH /api/tasks/:id`
+
+Sửa một hoặc nhiều trường: `name`, `startTime`, `endTime`, `priority`, `group`, `description`, `note`. Body rỗng hoặc trường ngoài danh sách trả HTTP 400. Nếu sửa một đầu thời gian, cặp giờ sau cập nhật vẫn phải hợp lệ.
+
+HTTP 200: `{ "task": { ... } }`.
+
+### `PATCH /api/tasks/:id/date`
+
+```json
+{ "date": "2026-10-05" }
+```
+
+Chuyển ngày nhưng giữ nguyên note, mô tả và trạng thái hoàn thành. HTTP 200: `{ "task": { ... } }`.
+
+### `PATCH /api/tasks/:id/completion`
+
+```json
+{ "completed": true }
+```
+
+Phải gửi boolean rõ ràng, không dùng toggle. Chuyển sang `true` đặt `completedAt`; chuyển sang `false` đặt `completedAt=null`. Gửi lại cùng giá trị không thay đổi `completedAt`. HTTP 200: `{ "task": { ... } }`.
+
+### `DELETE /api/tasks/:id`
+
+Gửi JSON `{}` cùng Origin hợp lệ. Thành công trả HTTP 204 và không có body.
+
+### `GET /api/tasks/summary?date=2026-10-04`
+
+```json
+{
+  "date": "2026-10-04",
+  "total": 0,
+  "completed": 0,
+  "incomplete": 0,
+  "completionPercentage": 0
+}
+```
+
+Phần trăm là số nguyên làm tròn gần nhất. Ngày không có công việc trả toàn bộ số đếm và phần trăm bằng 0.
+
+Chưa triển khai lịch lặp, ảnh hoặc frontend công việc trong chặng 2A.

@@ -37,7 +37,8 @@ Nhật ký và ảnh mặc định là riêng tư. Ngày cá nhân dùng múi gi
 
 - Chặng 0 và kết nối MongoDB của chặng 1A đã nghiệm thu.
 - Backend đăng ký, đăng nhập và quản lý phiên của chặng 1B.1 đã nghiệm thu.
-- Giao diện đăng ký, đăng nhập, khôi phục phiên và đăng xuất của chặng 1B.2 đã được kiểm chứng, đang chờ duyệt thay đổi.
-- Quên mật khẩu, xác minh email, đăng nhập Google, chỉnh hồ sơ, công việc, lịch nghiệp vụ, nhật ký, ảnh, hành trình đầy đủ và AI chưa được triển khai.
+- Giao diện đăng ký, đăng nhập, khôi phục phiên và đăng xuất của chặng 1B.2 đã nghiệm thu.
+- Backend công việc một lần theo ngày của chặng 2A đã được triển khai, kiểm chứng và nghiệm thu.
+- Frontend công việc, lịch lặp, ảnh, nhật ký ngày, Hành trình đầy đủ, quên mật khẩu, xác minh email, đăng nhập Google, chỉnh hồ sơ và AI chưa được triển khai.
 
 Chi tiết bằng chứng nằm trong [PROGRESS.md](PROGRESS.md); thứ tự triển khai nằm trong [ROADMAP.md](ROADMAP.md).

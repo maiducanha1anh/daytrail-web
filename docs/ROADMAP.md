@@ -6,17 +6,20 @@ Mỗi chặng chỉ chuyển trạng thái khi có bằng chứng kiểm tra tro
 
 Frontend/backend chạy được, health API, giao diện responsive, điều hướng khung và tài liệu nền. Điều kiện nghiệm thu: typecheck, lint, build, health, kết nối frontend/backend và kiểm tra desktop/mobile đều đạt hoặc được ghi rõ chưa kiểm chứng.
 
-## Chặng 1 — MongoDB và tài khoản (đang thực hiện)
+## Chặng 1 — MongoDB và tài khoản (đã nghiệm thu)
 
 - 1A — Kết nối MongoDB và readiness: đã nghiệm thu.
 - 1B.1 — Backend đăng ký, đăng nhập và phiên bền vững: đã nghiệm thu.
-- 1B.2 — Giao diện đăng ký, đăng nhập, khôi phục phiên và đăng xuất: đã triển khai và kiểm chứng, đang chờ duyệt.
+- 1B.2 — Giao diện đăng ký, đăng nhập, khôi phục phiên và đăng xuất: đã nghiệm thu.
 
 Điều kiện hoàn tất toàn chặng: backend và frontend auth hoạt động cùng nhau, quyền truy cập được kiểm tra và kiểm thử bảo mật/phiên đều đạt. Chưa tự đánh dấu toàn bộ chặng 1 hoàn tất khi chưa có yêu cầu chốt riêng.
 
-## Chặng 2 — Công việc và Hôm nay
+## Chặng 2 — Công việc và Hôm nay (đang thực hiện)
 
 Triển khai dữ liệu công việc, quyền sở hữu, màn hình Hôm nay và chi tiết công việc. Điều kiện nghiệm thu: API, UI responsive và kiểm thử dữ liệu theo tài khoản đều đạt.
+
+- 2A — Backend công việc một lần theo ngày: đã triển khai, kiểm chứng và nghiệm thu.
+- Frontend công việc và màn hình Hôm nay: chưa bắt đầu.
 
 ## Chặng 3 — Lịch và công việc lặp
 
