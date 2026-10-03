@@ -1,5 +1,20 @@
-# API contract
+# DayTrail API contract
 
-`GET /api/health` trả `200` với JSON không chứa bí mật: `{ "status": "ok", "service": "daytrail-api" }`.
+Base URL local mac dinh: `http://localhost:4000`.
 
-Base URL local mặc định: `http://localhost:4000`. Endpoint nghiệp vụ sẽ bổ sung từ chặng 1.
+## GET /api/health
+
+HTTP 200 khi API process dang hoat dong. Endpoint khong phu thuoc MongoDB.
+
+```json
+{ "status": "ok", "service": "daytrail-api" }
+```
+
+## GET /api/ready
+
+Ping MongoDB voi timeout huu han.
+
+- HTTP 200: `{ "status": "ready" }`
+- HTTP 503: `{ "status": "not_ready" }`
+
+Response khong chua URI, hostname, username, password hay thong tin noi bo cua Atlas.
