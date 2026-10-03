@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="DayTrail">
+  <rect width="64" height="64" rx="18" fill="#b8e36c"/>
+  <path d="M18 15h11c12 0 19 7 19 17s-7 17-19 17H18V15Zm10 9v16h2c5 0 8-3 8-8s-3-8-8-8h-2Z" fill="#16352d"/>
+</svg>
