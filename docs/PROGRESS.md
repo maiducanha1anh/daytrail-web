@@ -286,3 +286,33 @@ Kết luận: chặng 2B đã được người dùng duyệt sau khi thử lạ
 - Chặng 3B.1 đã được người dùng duyệt về backend dựa trên kết quả kiểm chứng của Codex: `typecheck`, `lint`, `build` PASS và 29/29 test PASS.
 - Người dùng chưa thử giao diện công việc lặp vì giao diện này chưa được triển khai. Chặng 3B.2 chưa bắt đầu nên toàn bộ chặng 3B chưa hoàn tất.
 - Các thay đổi 3B.1 được phép commit và push trong nhiệm vụ chốt chặng; chưa deploy.
+
+## Chặng 3B.2 — Giao diện công việc lặp
+
+### Đã triển khai
+
+- Form Lịch tạo được công việc không lặp, hằng ngày, hằng tuần nhiều thứ và hằng tháng. Ngày bắt đầu lấy từ ngày đang chọn; ngày kết thúc bắt buộc và tối đa 366 ngày tính cả ngày đầu.
+- Hằng tuần mặc định chọn thứ của ngày bắt đầu nhưng cho phép đổi; hằng tháng hiển thị đúng ngày trong tháng và giải thích tháng thiếu ngày sẽ bị bỏ qua.
+- Công việc lặp có dấu nhận biết gọn trong danh sách/tuần. Chi tiết tải metadata thật bằng `GET /api/tasks/series/:seriesId`, gồm quy tắc, khoảng, ngày dự kiến và trạng thái đã dừng.
+- Sửa, chuyển ngày và xóa ghi rõ phạm vi **lần này**. Note và hoàn thành tiếp tục chỉ tác động lần đang mở.
+- **Dừng lặp** mở xác nhận có ngày cắt mặc định là hôm nay theo lịch địa phương. Backend loại bỏ lần chưa hoàn thành/chưa có note và trả số lần loại bỏ/giữ lại; frontend làm mới danh sách và tổng quan theo response thật.
+- Note chưa lưu được bảo vệ trước khi dừng. Nếu chọn lưu mà request thất bại, bản nháp và bước xác nhận chưa được tiếp tục; người dùng có thể thử lại.
+- Backend bổ sung endpoint đọc chuỗi theo chủ sở hữu; không thay đổi dữ liệu tạo/dừng của chặng 3B.1.
+
+### Codex tự kiểm tra
+
+- Frontend `npm run typecheck`, `npm run lint`, `npm run build`: PASS.
+- Backend `npm run typecheck`, `npm run lint`, `npm run build`: PASS. Toàn bộ `npm test` trên `daytrail_test`: 29 PASS, 0 fail/cancelled/skipped/todo.
+- Chrome headless dùng backend 4015, frontend 5176, DevTools 9225 và database đã xác nhận là `daytrail_test`; không dùng hoặc dừng server người dùng 4000/5173.
+- Tạo một lần, lặp ngày, tuần nhiều thứ, tháng ngày 31; ngày kết thúc, giới hạn 366 ngày và bắt buộc chọn thứ: PASS. Chuỗi tháng ngày 31 bỏ đúng tháng thiếu ngày.
+- Note/hoàn thành độc lập, sửa/chuyển/xóa một lần, dừng từ lần không phải đầu và đã chuyển ngày, giữ lịch sử có note/hoàn thành, reload không sinh trùng và tổng quan cập nhật: PASS.
+- Khi chủ động tạo lỗi mạng và HTTP 503, form/bản nháp được giữ, không báo thành công giả và thử lại thành công. Lưu note lỗi trước khi dừng không mở bước xác nhận dừng.
+- Responsive 360/390/1440 px: không tràn ngang; dialog dài cuộn được. Runtime exception và Console error ngoài lỗi API chủ động tạo: 0.
+- Cleanup trên `daytrail_test` đã xóa đúng 3 user, 3 session, 36 task và 9 series mang marker `@stage3b2.test`; còn 0 user marker. Toàn bộ tiến trình, profile, log và script test tạm đã được dọn.
+
+### Giới hạn và trạng thái
+
+- Chưa hỗ trợ sửa hàng loạt quy tắc hoặc toàn bộ chuỗi. Dừng chuỗi là thao tác cấp chuỗi duy nhất trong V1 hiện tại.
+- Chưa làm ảnh, nhật ký ngày, Hành trình hoặc AI.
+- Người dùng đã thử giao diện công việc lặp, xác nhận hoạt động ổn và duyệt chặng 3B.2. Đây là kết quả kiểm tra thủ công của người dùng, tách biệt với các kiểm tra kỹ thuật của Codex ở trên.
+- Chặng 3B hoàn tất trong phạm vi V1 đã thống nhất: chuỗi lặp hữu hạn, thao tác trên từng lần và dừng chuỗi. Chưa commit, push hoặc deploy.

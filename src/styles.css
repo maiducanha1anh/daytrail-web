@@ -153,6 +153,7 @@ footer { margin-top: auto; padding-top: 48px; color: #8b9991; font-size: 12px; }
 .task-copy strong, .task-copy span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .task-copy strong { font-size: 15px; }
 .task-copy span { margin-top: 4px; color: #748179; font-size: 12px; }
+.repeat-badge { display: inline-flex; align-items: center; margin-left: 7px; border-radius: 999px; padding: 3px 7px; color: #4f7042; background: #eef7e5; font-size: 10px; font-style: normal; font-weight: 800; white-space: nowrap; }
 .is-completed .task-copy strong { color: #76847d; text-decoration: line-through; }
 .task-status { display: inline-flex; align-items: center; border-radius: 999px; padding: 6px 10px; color: #8d6744; background: #fff4e8; font-size: 11px; font-weight: 800; white-space: nowrap; }
 .task-status.completed { color: #39744e; background: #eaf6ec; }
@@ -242,6 +243,18 @@ footer { margin-top: auto; padding-top: 48px; color: #8b9991; font-size: 12px; }
 .task-form { display: grid; grid-template-columns: 1fr 1fr; gap: 17px; }
 .field-span-2 { grid-column: 1 / -1; }
 .field-help, .note-meta { color: #7a8780; font-size: 11px; line-height: 1.45; }
+.recurrence-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 17px; border: 1px solid #dce7dc; border-radius: 15px; background: #f8fbf7; }
+.recurrence-summary, .recurrence-note { display: flex; flex-direction: column; justify-content: center; gap: 5px; padding: 13px; border-radius: 12px; background: #fff; }
+.recurrence-summary strong, .recurrence-note strong { font-size: 13px; }
+.recurrence-summary span, .recurrence-note span { color: #738179; font-size: 12px; line-height: 1.45; }
+.weekday-field { grid-column: 1 / -1; min-width: 0; margin: 0; border: 0; padding: 0; }
+.weekday-field legend { margin-bottom: 8px; font-size: 13px; font-weight: 750; }
+.weekday-options { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 7px; margin-bottom: 8px; }
+.weekday-options label { min-width: 0; cursor: pointer; }
+.weekday-options input { position: absolute; opacity: 0; pointer-events: none; }
+.weekday-options span { min-height: 40px; display: grid; place-items: center; border: 1px solid #cad8cc; border-radius: 10px; color: #64776c; background: #fff; font-size: 12px; font-weight: 800; }
+.weekday-options input:checked + span { border-color: #7ba64f; color: #294923; background: #e8f5d8; box-shadow: inset 0 0 0 1px #7ba64f; }
+.weekday-options input:focus-visible + span { outline: 3px solid rgba(139, 189, 88, .28); outline-offset: 2px; }
 .stack-form { display: grid; gap: 17px; }
 .dialog-actions { display: flex; justify-content: flex-end; align-items: center; gap: 9px; margin-top: 5px; }
 .three-actions { flex-wrap: wrap; justify-content: flex-start; }
@@ -252,6 +265,17 @@ footer { margin-top: auto; padding-top: 48px; color: #8b9991; font-size: 12px; }
 .detail-section { margin: 20px 0; }
 .detail-section h3 { margin: 0 0 7px; font-size: 15px; }
 .detail-section > p, .note-heading p { margin: 0; color: #6f7d75; line-height: 1.6; }
+.recurrence-detail { padding: 17px; border: 1px solid #dce8dc; border-radius: 15px; background: #f8fbf7; }
+.recurrence-detail-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.recurrence-detail-heading p { margin: 0; color: #6f7d75; font-size: 12px; line-height: 1.5; }
+.recurrence-detail-heading .repeat-badge { flex: 0 0 auto; margin: 0; }
+.series-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin: 15px 0; }
+.series-facts > div { min-width: 0; padding: 11px; border-radius: 11px; background: #fff; }
+.series-facts dt { color: #829087; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; }
+.series-facts dd { margin: 5px 0 0; font-size: 12px; font-weight: 700; line-height: 1.45; }
+.series-moved-note { margin: 0 0 13px; color: #7b684d; font-size: 12px; line-height: 1.5; }
+.loading-inline { padding: 14px 0; color: #728078; font-size: 12px; }
+.compact-error { margin-top: 12px; padding: 12px; }
 .note-heading { display: flex; justify-content: space-between; gap: 15px; margin-bottom: 10px; }
 .detail-section textarea { width: 100%; border: 1px solid #ccd9d0; border-radius: 13px; padding: 12px 13px; color: #18322d; outline: none; }
 .detail-section textarea:focus { border-color: #6f9d53; box-shadow: 0 0 0 3px rgba(139, 189, 88, .18); }
@@ -261,6 +285,11 @@ footer { margin-top: auto; padding-top: 48px; color: #8b9991; font-size: 12px; }
 .unsaved-prompt { margin-top: 18px; padding: 18px; border: 1px solid #ebcfaa; border-radius: 15px; background: #fff9ee; }
 .unsaved-prompt h3 { margin: 0 0 5px; font-size: 16px; }
 .unsaved-prompt p { margin: 0 0 14px; color: #796952; }
+.stop-series-prompt { margin-top: 18px; padding: 18px; border: 1px solid #e3b5af; border-radius: 15px; background: #fff7f5; }
+.stop-series-prompt h3 { margin: 0 0 7px; font-size: 17px; }
+.stop-series-prompt > p { margin: 0 0 14px; color: #715f5b; line-height: 1.55; }
+.stop-series-prompt .field { margin: 14px 0; }
+.collection-notice, .page-notice { margin-bottom: 14px; }
 .journey-placeholder { margin-top: 26px; min-height: 340px; display: grid; align-content: center; justify-items: center; text-align: center; }
 .journey-placeholder h1 { margin: 14px 0 6px; }
 .journey-placeholder p { max-width: 540px; color: #6a7971; }
@@ -329,7 +358,10 @@ footer { margin-top: auto; padding-top: 48px; color: #8b9991; font-size: 12px; }
   .dialog-panel, .dialog-panel.dialog-wide { width: 100%; max-height: 92vh; border-radius: 22px 22px 0 0; padding: 24px 18px calc(22px + env(safe-area-inset-bottom)); }
   .task-form { grid-template-columns: 1fr; }
   .field-span-2 { grid-column: auto; }
+  .recurrence-fields { grid-template-columns: 1fr; padding: 14px; }
+  .weekday-field { grid-column: auto; }
   .task-facts { grid-template-columns: 1fr 1fr; }
+  .series-facts { grid-template-columns: 1fr; }
   .dialog-actions { flex-wrap: wrap; }
   .load-error { align-items: flex-start; flex-direction: column; }
 }
@@ -347,6 +379,9 @@ footer { margin-top: auto; padding-top: 48px; color: #8b9991; font-size: 12px; }
   .count-badge, .future-badge { padding: 6px 8px; }
   .task-actions { padding-left: 12px; }
   .task-facts { grid-template-columns: 1fr; }
+  .weekday-options { gap: 4px; }
+  .weekday-options span { min-height: 38px; font-size: 11px; }
+  .recurrence-detail-heading { flex-direction: column; }
   .summary-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
   .summary-grid > div { padding: 14px; }
   .year-grid { grid-template-columns: 1fr; }

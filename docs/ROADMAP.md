@@ -27,7 +27,9 @@ Mở rộng từ lịch tháng nhỏ của chặng 2B sang chế độ năm/thá
 
 - 3A — Các chế độ xem Năm/Tháng/Tuần/Ngày, responsive và tổng quan theo khoảng: đã triển khai, kiểm chứng và được người dùng duyệt.
 - 3B.1 — Backend chuỗi lặp hữu hạn, thao tác một lần và dừng chuỗi: đã triển khai, Codex kiểm chứng và được người dùng duyệt.
-- 3B.2 — Giao diện tạo/dừng chuỗi và hiển thị nguồn lặp: chưa triển khai.
+- 3B.2 — Giao diện tạo/dừng chuỗi và hiển thị nguồn lặp: đã triển khai, Codex kiểm chứng và được người dùng duyệt sau khi thử thủ công.
+
+Chặng 3B hoàn tất trong phạm vi V1 đã thống nhất. Chưa hỗ trợ sửa hàng loạt quy tắc hoặc toàn bộ chuỗi; ảnh, nhật ký ngày và Hành trình thuộc các chặng sau.
 
 ## Chặng 4 — Nhật ký và ảnh
 

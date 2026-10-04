@@ -54,6 +54,7 @@ export function CalendarPage({ onUnauthorized, registerNavigationGuard, requestN
   const [miniMonth, setMiniMonth] = useState({ year: initialDate.getFullYear(), month: initialDate.getMonth() })
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [creating, setCreating] = useState(false)
+  const [notice, setNotice] = useState<string>()
   const [revision, setRevision] = useState(0)
   const range = useMemo(() => viewRange(view, selectedDate), [selectedDate, view])
   const rangeData = useCalendarRange(range.from, range.to, view === 'week', revision, onUnauthorized)
@@ -109,6 +110,11 @@ export function CalendarPage({ onUnauthorized, registerNavigationGuard, requestN
     setRevision((current) => current + 1)
   }
 
+  function seriesChanged() {
+    taskDay.reload()
+    dataChanged()
+  }
+
   function acceptTask(task: Task) {
     taskDay.acceptTask(task)
     dataChanged()
@@ -126,6 +132,7 @@ export function CalendarPage({ onUnauthorized, registerNavigationGuard, requestN
 
   return <div className="calendar-page page-stack">
     <header className="page-heading calendar-page-heading"><div><p className="eyebrow">Lịch</p><h1>Lập kế hoạch theo nhịp của bạn</h1><p>Xem tổng quan năm, tháng, tuần hoặc tập trung vào một ngày.</p></div></header>
+    {notice && <div className="form-message success page-notice" role="status">{notice}</div>}
     <button className="calendar-toggle" type="button" aria-expanded={calendarOpen} onClick={() => setCalendarOpen((open) => !open)}>{calendarOpen ? 'Thu gọn lịch chọn ngày' : 'Mở lịch chọn ngày'} · {monthLabel(miniMonth.year, miniMonth.month)}</button>
 
     <div className="calendar-layout calendar-layout-expanded">
@@ -136,12 +143,16 @@ export function CalendarPage({ onUnauthorized, registerNavigationGuard, requestN
       <div className="calendar-workspace">
         <CalendarToolbar view={view} title={viewTitle(view, selectedDate)} onViewChange={selectView} onPrevious={() => shift(-1)} onNext={() => shift(1)} onToday={goToday} onCreate={() => setCreating(true)} />
         {view === 'year' && <YearView year={selected.getFullYear()} summaries={rangeData.summaries} loading={rangeData.loading} error={rangeData.error} onRetry={rangeData.reload} onOpenMonth={openMonth} />}
-        {view === 'month' && <MonthView year={selected.getFullYear()} month={selected.getMonth()} selectedDate={selectedDate} today={today} summaries={rangeData.summaries} loading={rangeData.loading} error={rangeData.error} onRetry={rangeData.reload} onSelectDate={selectDate} onOpenDay={() => openDay()} taskDay={taskDay} acceptTask={acceptTask} removeTask={removeTask} onUnauthorized={onUnauthorized} registerNavigationGuard={registerNavigationGuard} />}
-        {view === 'week' && <WeekView from={range.from} to={range.to} today={today} tasks={rangeData.tasks} loading={rangeData.loading} error={rangeData.error} onRetry={rangeData.reload} onOpenDay={openDay} onTaskChanged={acceptWeekTask} onUnauthorized={onUnauthorized} registerNavigationGuard={registerNavigationGuard} />}
-        {view === 'day' && <DayView selectedDate={selectedDate} taskDay={taskDay} acceptTask={acceptTask} removeTask={removeTask} onUnauthorized={onUnauthorized} registerNavigationGuard={registerNavigationGuard} />}
+        {view === 'month' && <MonthView year={selected.getFullYear()} month={selected.getMonth()} selectedDate={selectedDate} today={today} summaries={rangeData.summaries} loading={rangeData.loading} error={rangeData.error} onRetry={rangeData.reload} onSelectDate={selectDate} onOpenDay={() => openDay()} taskDay={taskDay} acceptTask={acceptTask} removeTask={removeTask} onSeriesChanged={seriesChanged} onUnauthorized={onUnauthorized} registerNavigationGuard={registerNavigationGuard} />}
+        {view === 'week' && <WeekView from={range.from} to={range.to} today={today} tasks={rangeData.tasks} loading={rangeData.loading} error={rangeData.error} onRetry={rangeData.reload} onOpenDay={openDay} onTaskChanged={acceptWeekTask} onSeriesChanged={seriesChanged} onUnauthorized={onUnauthorized} registerNavigationGuard={registerNavigationGuard} />}
+        {view === 'day' && <DayView selectedDate={selectedDate} taskDay={taskDay} acceptTask={acceptTask} removeTask={removeTask} onSeriesChanged={seriesChanged} onUnauthorized={onUnauthorized} registerNavigationGuard={registerNavigationGuard} />}
       </div>
     </div>
 
-    {creating && <TaskFormDialog date={selectedDate} onClose={() => setCreating(false)} onSaved={(task) => { acceptTask(task); setCreating(false) }} onUnauthorized={onUnauthorized} />}
+    {creating && <TaskFormDialog date={selectedDate} onClose={() => setCreating(false)} onSaved={(result) => {
+      setNotice(result.message)
+      if (result.task) acceptTask(result.task)
+      else seriesChanged()
+    }} onUnauthorized={onUnauthorized} />}
   </div>
 }

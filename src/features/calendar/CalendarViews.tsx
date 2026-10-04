@@ -9,6 +9,7 @@ type TaskDayState = ReturnType<typeof useTaskDay>
 
 const weekDays = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật']
 const monthWeekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+const repeatLabel = { daily: 'Hằng ngày', weekly: 'Hằng tuần', monthly: 'Hằng tháng' } as const
 
 function summaryMap(summaries: TaskSummary[]) {
   return new Map(summaries.map((summary) => [summary.date, summary]))
@@ -56,7 +57,7 @@ export function YearView({ error, loading, onOpenMonth, onRetry, summaries, year
   </section>
 }
 
-export function MonthView({ acceptTask, error, loading, onOpenDay, onRetry, onSelectDate, onUnauthorized, registerNavigationGuard, removeTask, selectedDate, summaries, taskDay, today, year, month }: {
+export function MonthView({ acceptTask, error, loading, onOpenDay, onRetry, onSelectDate, onSeriesChanged, onUnauthorized, registerNavigationGuard, removeTask, selectedDate, summaries, taskDay, today, year, month }: {
   acceptTask: (task: Task) => void
   error?: string
   loading: boolean
@@ -64,6 +65,7 @@ export function MonthView({ acceptTask, error, loading, onOpenDay, onRetry, onSe
   onOpenDay: () => void
   onRetry: () => void
   onSelectDate: (date: string) => void
+  onSeriesChanged: () => void
   onUnauthorized: () => void
   registerNavigationGuard: GuardRegistrar
   removeTask: (id: string) => void
@@ -92,17 +94,18 @@ export function MonthView({ acceptTask, error, loading, onOpenDay, onRetry, onSe
     </section>
     <section className="content-card calendar-selected-day" aria-labelledby="month-selected-title">
       <div className="section-heading"><div><p className="eyebrow">Ngày đã chọn</p><h2 id="month-selected-title">{formatLocalDate(selectedDate)}</h2><p>Xem nhanh công việc hoặc mở chế độ Ngày để có tổng quan đầy đủ.</p></div><button className="secondary-button" type="button" onClick={onOpenDay}>Mở chế độ Ngày</button></div>
-      <TaskCollection date={selectedDate} tasks={taskDay.tasks} loading={taskDay.loading} error={taskDay.error} reload={taskDay.reload} acceptTask={acceptTask} removeTask={removeTask} onUnauthorized={onUnauthorized} registerNavigationGuard={registerNavigationGuard} />
+      <TaskCollection date={selectedDate} tasks={taskDay.tasks} loading={taskDay.loading} error={taskDay.error} reload={taskDay.reload} acceptTask={acceptTask} removeTask={removeTask} onSeriesChanged={onSeriesChanged} onUnauthorized={onUnauthorized} registerNavigationGuard={registerNavigationGuard} />
     </section>
   </div>
 }
 
-export function WeekView({ error, from, loading, onOpenDay, onRetry, onTaskChanged, onUnauthorized, registerNavigationGuard, tasks, to, today }: {
+export function WeekView({ error, from, loading, onOpenDay, onRetry, onSeriesChanged, onTaskChanged, onUnauthorized, registerNavigationGuard, tasks, to, today }: {
   error?: string
   from: string
   loading: boolean
   onOpenDay: (date: string) => void
   onRetry: () => void
+  onSeriesChanged: () => void
   onTaskChanged: (task: Task) => void
   onUnauthorized: () => void
   registerNavigationGuard: GuardRegistrar
@@ -111,6 +114,7 @@ export function WeekView({ error, from, loading, onOpenDay, onRetry, onTaskChang
   today: string
 }) {
   const [selectedTask, setSelectedTask] = useState<Task>()
+  const [seriesNotice, setSeriesNotice] = useState<string>()
   const dates = useMemo(() => dateRange(from, to), [from, to])
   const grouped = useMemo(() => new Map(dates.map((date) => [date, tasks.filter((task) => task.date === date).sort((left, right) => left.startTime.localeCompare(right.startTime) || left.id.localeCompare(right.id))])), [dates, tasks])
 
@@ -121,20 +125,22 @@ export function WeekView({ error, from, loading, onOpenDay, onRetry, onTaskChang
 
   return <section className="content-card calendar-main-view" aria-labelledby="week-view-title">
     <div className="section-heading"><div><h2 id="week-view-title">Kế hoạch trong tuần</h2><p>Công việc trùng giờ được xếp thành các thẻ riêng, không che lên nhau.</p></div></div>
+    {seriesNotice && <div className="form-message success collection-notice" role="status">{seriesNotice}</div>}
     <RangeFeedback error={error} loading={loading} onRetry={onRetry} />
     {!loading && !error && <div className="week-board">{dates.map((date, index) => <section key={date} className={`week-day-column ${date === today ? 'today' : ''}`}>
       <button className="week-day-heading" type="button" onClick={() => onOpenDay(date)}><span>{weekDays[index]}</span><strong>{formatLocalDate(date, { day: '2-digit', month: '2-digit' })}</strong></button>
       <div className="week-task-stack">{(grouped.get(date) ?? []).map((task) => <button key={task.id} type="button" className={`week-task ${task.completed ? 'completed' : ''}`} onClick={() => setSelectedTask(task)}>
-        <span>{task.startTime}–{task.endTime}</span><strong>{task.name}</strong><small>{task.completed ? 'Đã hoàn thành' : 'Chưa làm'}</small>
+        <span>{task.startTime}–{task.endTime}</span><strong>{task.name}</strong><small>{task.completed ? 'Đã hoàn thành' : 'Chưa làm'}{task.recurrence ? ` · ↻ ${repeatLabel[task.recurrence.frequency]}` : ''}</small>
       </button>)}{(grouped.get(date) ?? []).length === 0 && <span className="week-empty">Không có việc</span>}</div>
     </section>)}</div>}
-    {selectedTask && <TaskDetailDialog key={selectedTask.id} task={selectedTask} onClose={() => setSelectedTask(undefined)} onTaskChanged={acceptTask} onUnauthorized={onUnauthorized} registerNavigationGuard={registerNavigationGuard} />}
+    {selectedTask && <TaskDetailDialog key={selectedTask.id} task={selectedTask} onClose={() => setSelectedTask(undefined)} onSeriesChanged={(message) => { setSeriesNotice(message); onSeriesChanged() }} onTaskChanged={acceptTask} onUnauthorized={onUnauthorized} registerNavigationGuard={registerNavigationGuard} />}
   </section>
 }
 
-export function DayView({ acceptTask, onUnauthorized, registerNavigationGuard, removeTask, selectedDate, taskDay }: {
+export function DayView({ acceptTask, onSeriesChanged, onUnauthorized, registerNavigationGuard, removeTask, selectedDate, taskDay }: {
   acceptTask: (task: Task) => void
   onUnauthorized: () => void
+  onSeriesChanged: () => void
   registerNavigationGuard: GuardRegistrar
   removeTask: (id: string) => void
   selectedDate: string
@@ -143,7 +149,7 @@ export function DayView({ acceptTask, onUnauthorized, registerNavigationGuard, r
   return <div className="calendar-view-stack">
     <section className="content-card calendar-selected-day" aria-labelledby="day-view-title">
       <div className="section-heading"><div><p className="eyebrow">Chế độ Ngày</p><h2 id="day-view-title">{formatLocalDate(selectedDate)}</h2><p>Công việc được sắp theo giờ bắt đầu.</p></div>{taskDay.refreshing && <span className="refresh-note">Đang cập nhật…</span>}</div>
-      <TaskCollection date={selectedDate} tasks={taskDay.tasks} loading={taskDay.loading} error={taskDay.error} reload={taskDay.reload} acceptTask={acceptTask} removeTask={removeTask} onUnauthorized={onUnauthorized} registerNavigationGuard={registerNavigationGuard} />
+      <TaskCollection date={selectedDate} tasks={taskDay.tasks} loading={taskDay.loading} error={taskDay.error} reload={taskDay.reload} acceptTask={acceptTask} removeTask={removeTask} onSeriesChanged={onSeriesChanged} onUnauthorized={onUnauthorized} registerNavigationGuard={registerNavigationGuard} />
     </section>
     <section className="content-card" aria-labelledby="day-summary-title"><div className="section-heading"><div><h2 id="day-summary-title">Tổng quan ngày</h2><p>Số liệu cập nhật từ toàn bộ công việc trong ngày.</p></div></div>{taskDay.loading ? <div className="summary-loading">Đang tải tổng quan…</div> : <SummaryCards summary={taskDay.summary} />}</section>
   </div>

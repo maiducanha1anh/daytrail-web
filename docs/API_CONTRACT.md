@@ -205,6 +205,33 @@ HTTP 201 trả gọn, không trả toàn bộ công việc:
 
 Backend tạo `TaskSeries` và các `Task` trong một MongoDB transaction; lỗi giữa chừng rollback toàn bộ. Unique index theo user/chuỗi/ngày dự kiến ngăn tạo trùng. Đọc lịch, reload hoặc khởi động backend không sinh thêm lần thực hiện.
 
+### `GET /api/tasks/series/:seriesId`
+
+Trả metadata tối thiểu của chuỗi để giao diện hiển thị đúng quy tắc, không suy đoán từ một lần thực hiện:
+
+```json
+{
+  "series": {
+    "id": "<object-id>",
+    "startDate": "2026-10-05",
+    "endDate": "2026-12-31",
+    "frequency": "weekly",
+    "weekdays": [1, 3, 5],
+    "name": "Tập thể dục",
+    "startTime": "06:30",
+    "endTime": "07:00",
+    "priority": "normal",
+    "group": "Sức khỏe",
+    "description": null,
+    "stoppedFromDate": null,
+    "createdAt": "<timestamp-UTC>",
+    "updatedAt": "<timestamp-UTC>"
+  }
+}
+```
+
+Endpoint yêu cầu phiên hợp lệ và chỉ trả chuỗi thuộc user hiện tại. ID sai trả 400; không tồn tại hoặc thuộc user khác trả 404.
+
 ### `POST /api/tasks/series/:seriesId/stop`
 
 ```json
@@ -307,7 +334,7 @@ Trả tổng quan theo từng ngày có công việc trong khoảng, tối đa 3
 
 Ngày không có công việc không xuất hiện trong `summaries`; frontend coi ngày thiếu là các số đếm 0, không phải hoàn thành 100%. Response không chứa tên, mô tả, note hoặc dữ liệu nhạy cảm. Thiếu/sai ngày, `to < from`, khoảng quá 366 ngày hoặc query ngoài `from`, `to` trả HTTP 400. Dữ liệu luôn giới hạn theo user của session.
 
-Danh sách và tổng quan tính trên các `Task` thực tế còn tồn tại, gồm công việc một lần và từng lần lặp; không đếm thêm document `TaskSeries`. Công việc đã chuyển ngày chỉ được tính ở ngày đích. Frontend chặng 3A chưa có điều khiển tạo/dừng chuỗi; ảnh cũng chưa triển khai.
+Danh sách và tổng quan tính trên các `Task` thực tế còn tồn tại, gồm công việc một lần và từng lần lặp; không đếm thêm document `TaskSeries`. Công việc đã chuyển ngày chỉ được tính ở ngày đích. Frontend chặng 3B.2 dùng các endpoint chuỗi để tạo, hiển thị metadata thật và dừng lặp; ảnh chưa triển khai.
 
 ## Database tạm thời không sẵn sàng
 
