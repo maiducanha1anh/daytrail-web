@@ -35,6 +35,10 @@ Chặng 3B hoàn tất trong phạm vi V1 đã thống nhất. Chưa hỗ trợ 
 
 Triển khai nhật ký riêng tư độc lập với công việc: ngày không có công việc vẫn có nhật ký, hỗ trợ nhiều ảnh và chú thích từng ảnh. Bổ sung ảnh công việc để xem lại từ chi tiết công việc ở ngày cũ; file nằm trong object storage và MongoDB lưu metadata. Điều kiện nghiệm thu: quyền riêng tư, lỗi upload và dọn file được kiểm thử.
 
+- 4A — Backend nhật ký văn bản theo ngày, version chống ghi đè và danh sách đoạn trích: đã triển khai, Codex kiểm chứng và được người dùng duyệt về backend.
+- 4B — Giao diện viết và xem lại nhật ký: chưa triển khai.
+- 4C — Ảnh nhật ký/công việc và chú thích: chưa triển khai.
+
 ## Chặng 5 — Hành trình
 
 Triển khai timeline, khoảnh khắc nổi bật và giai đoạn cá nhân liên kết dữ liệu gốc. Điều kiện nghiệm thu: điều hướng thời gian và liên kết dữ liệu đúng trên desktop/mobile.

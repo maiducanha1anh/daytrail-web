@@ -336,6 +336,97 @@ Ngày không có công việc không xuất hiện trong `summaries`; frontend c
 
 Danh sách và tổng quan tính trên các `Task` thực tế còn tồn tại, gồm công việc một lần và từng lần lặp; không đếm thêm document `TaskSeries`. Công việc đã chuyển ngày chỉ được tính ở ngày đích. Frontend chặng 3B.2 dùng các endpoint chuỗi để tạo, hiển thị metadata thật và dừng lặp; ảnh chưa triển khai.
 
+## Nhật ký ngày
+
+Mọi endpoint dưới `/api/journals` yêu cầu cookie phiên hợp lệ và chỉ truy cập dữ liệu của user trong session. Ngày dùng `YYYY-MM-DD`, không chuyển sang UTC. Nội dung là văn bản thuần tối đa 20.000 ký tự; backend giữ nguyên tiếng Việt, xuống dòng và khoảng trắng nhưng từ chối nội dung chỉ có khoảng trắng.
+
+`version` là số tăng sau mỗi lần cập nhật, dùng để tránh một tab ghi đè dữ liệu mới của tab khác. Tạo mới phải gửi `version: null`; cập nhật và xóa phải gửi version mới nhất đã đọc. Xung đột trả HTTP 409, client phải đọc lại dữ liệu rồi để người dùng quyết định.
+
+### `GET /api/journals/:date`
+
+Ngày có nhật ký trả HTTP 200:
+
+```json
+{
+  "journal": {
+    "date": "2026-10-04",
+    "content": "Một ngày đáng nhớ.\nDòng thứ hai.",
+    "version": 2,
+    "createdAt": "2026-10-04T02:00:00.000Z",
+    "updatedAt": "2026-10-04T03:00:00.000Z"
+  }
+}
+```
+
+Ngày chưa có nhật ký trả HTTP 200 với `{ "journal": null }`; endpoint không tự tạo document. Response không chứa `userId`.
+
+### `PUT /api/journals/:date`
+
+Tạo mới:
+
+```json
+{
+  "content": "Nội dung nhật ký",
+  "version": null
+}
+```
+
+- HTTP 201: tạo thành công và trả `{ "journal": { ... } }` với `version: 1`.
+- HTTP 409: ngày này đã có nhật ký, kể cả khi hai request tạo đồng thời.
+
+Cập nhật dùng version đã đọc:
+
+```json
+{
+  "content": "Nội dung đã sửa",
+  "version": 1
+}
+```
+
+- HTTP 200: cập nhật thành công, trả journal với version tăng thêm 1.
+- HTTP 404: user hiện tại không có nhật ký ở ngày đó.
+- HTTP 409: journal còn tồn tại nhưng version không khớp; không có dữ liệu nào bị ghi đè.
+
+Body ngoài `content`, `version`; content sai kiểu/rỗng/toàn khoảng trắng/quá dài; version thiếu hoặc sai kiểu đều trả HTTP 400. Client không được gửi `userId`, timestamps hoặc trường hệ thống. Thao tác yêu cầu JSON và Origin hợp lệ.
+
+### `DELETE /api/journals/:date`
+
+```json
+{ "version": 2 }
+```
+
+- HTTP 204: xóa thành công, không có body.
+- HTTP 404: không có nhật ký thuộc user hiện tại ở ngày đó.
+- HTTP 409: version cũ; nhật ký mới không bị xóa.
+
+Xóa yêu cầu JSON và Origin hợp lệ. Không dùng content rỗng để thay cho thao tác xóa.
+
+### `GET /api/journals?from=2026-01-01&to=2026-12-31&page=1&limit=20`
+
+Khoảng tối đa 366 ngày. `page` mặc định 1; `limit` mặc định 20, tối đa 100. Danh sách sắp theo ngày giảm dần và chỉ trả metadata cùng đoạn trích tối đa 160 ký tự, không tải toàn bộ content:
+
+```json
+{
+  "journals": [
+    {
+      "date": "2026-10-04",
+      "excerpt": "Một ngày đáng nhớ. Dòng thứ hai.",
+      "version": 2,
+      "createdAt": "2026-10-04T02:00:00.000Z",
+      "updatedAt": "2026-10-04T03:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "pages": 1
+  }
+}
+```
+
+Thiếu/sai `from`, `to`; `to < from`; khoảng quá 366 ngày; page/limit sai hoặc query ngoài danh sách cho phép trả HTTP 400. Nhật ký độc lập với công việc: ngày không có task vẫn có thể tạo và xuất hiện trong danh sách.
+
 ## Database tạm thời không sẵn sàng
 
 Endpoint cần MongoDB trả HTTP 503 khi kết nối database bị gián đoạn:

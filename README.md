@@ -1,6 +1,6 @@
 # DayTrail Web
 
-Frontend React + TypeScript + Vite của DayTrail. **Hôm nay** có danh sách, chi tiết, note và tổng quan công việc. **Lịch** có bốn chế độ Năm/Tháng/Tuần/Ngày cùng giao diện tạo, nhận biết và dừng chuỗi lặp hữu hạn. Nhật ký ngày, ảnh và **Hành trình** chưa được triển khai.
+Frontend React + TypeScript + Vite của DayTrail. **Hôm nay** có danh sách, chi tiết, note và tổng quan công việc. **Lịch** có bốn chế độ Năm/Tháng/Tuần/Ngày cùng giao diện tạo, nhận biết và dừng chuỗi lặp hữu hạn. Backend nhật ký văn bản đã có từ chặng 4A; giao diện nhật ký, ảnh và **Hành trình** chưa được triển khai.
 
 ## Chạy trên Windows
 

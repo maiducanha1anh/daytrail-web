@@ -315,4 +315,35 @@ Kết luận: chặng 2B đã được người dùng duyệt sau khi thử lạ
 - Chưa hỗ trợ sửa hàng loạt quy tắc hoặc toàn bộ chuỗi. Dừng chuỗi là thao tác cấp chuỗi duy nhất trong V1 hiện tại.
 - Chưa làm ảnh, nhật ký ngày, Hành trình hoặc AI.
 - Người dùng đã thử giao diện công việc lặp, xác nhận hoạt động ổn và duyệt chặng 3B.2. Đây là kết quả kiểm tra thủ công của người dùng, tách biệt với các kiểm tra kỹ thuật của Codex ở trên.
-- Chặng 3B hoàn tất trong phạm vi V1 đã thống nhất: chuỗi lặp hữu hạn, thao tác trên từng lần và dừng chuỗi. Chưa commit, push hoặc deploy.
+- Chặng 3B hoàn tất trong phạm vi V1 đã thống nhất: chuỗi lặp hữu hạn, thao tác trên từng lần và dừng chuỗi. Backend đã commit/push tại `47e8c24`; frontend đã commit/push tại `b33788e`; chưa deploy.
+
+## Chặng 4A — Backend nhật ký ngày
+
+### Đã triển khai
+
+- Model `Journal` gồm `userId`, ngày lịch `YYYY-MM-DD`, nội dung nguyên văn, `version` và timestamps. Unique index `(userId, date)` giới hạn một nhật ký cho mỗi tài khoản/ngày.
+- `GET /api/journals/:date` trả đầy đủ nội dung hoặc `journal: null`; `PUT` tạo/cập nhật và `DELETE` xóa theo version đã đọc.
+- `GET /api/journals?from&to&page&limit` giới hạn khoảng 366 ngày, mặc định 20 và tối đa 100 bản ghi/trang; response chỉ có metadata và đoạn trích tối đa 160 ký tự.
+- Nội dung tối đa 20.000 ký tự, giữ nguyên tiếng Việt, xuống dòng và khoảng trắng. Nội dung chỉ có khoảng trắng bị từ chối; xóa phải dùng endpoint riêng.
+- Tạo mới gửi `version: null`. Cập nhật/xóa dùng điều kiện nguyên tử theo chủ sở hữu, ngày và version; dữ liệu đã đổi trả HTTP 409 thay vì ghi đè.
+- Mọi truy vấn lấy `userId` từ session. Thao tác ghi giữ kiểm tra Origin/JSON; database gián đoạn giữ HTTP 503 `DATABASE_UNAVAILABLE` và không xóa cookie.
+
+### Codex tự kiểm tra
+
+- Backend `npm run typecheck`, `npm run lint`, `npm run build`: PASS.
+- Suite nhật ký chạy riêng trên database được xác nhận là `daytrail_test`: 9 PASS, 0 fail/cancelled/skipped/todo.
+- Toàn bộ `npm test`: 38 PASS, 0 fail/cancelled/skipped/todo; auth, task, recurrence, health/readiness và xử lý database unavailable không hồi quy.
+- Test xác nhận nhật ký độc lập với task; nội dung tiếng Việt/xuống dòng/khoảng trắng; ngày nhuận; validation kiểu/độ dài/ngày/khoảng; phân trang, thứ tự và đoạn trích; cách ly hai tài khoản.
+- Hai request tạo đồng thời cho cùng user/ngày cho một HTTP 201 và một HTTP 409, chỉ còn một document. Hai cập nhật cùng version cho một HTTP 200 và một HTTP 409; xóa bằng version cũ không làm mất dữ liệu mới.
+- Cleanup chỉ xóa journal, task, series, session và user thuộc domain ngẫu nhiên của lần test sau khi xác nhận database là `daytrail_test`; các assert cleanup đều PASS, không drop database hoặc collection.
+
+### Bằng chứng người dùng cung cấp
+
+- Người dùng duyệt chặng 4A về backend theo báo cáo kiểm chứng của Codex.
+- Người dùng chưa thử giao diện nhật ký vì chặng 4B chưa được triển khai.
+
+### Giới hạn và trạng thái
+
+- Chặng 4A chỉ có backend nhật ký văn bản và đã được người dùng duyệt. Frontend chưa gọi các endpoint mới.
+- Giao diện nhật ký thuộc chặng 4B; ảnh nhật ký/công việc và chú thích thuộc chặng 4C. Hành trình và AI chưa triển khai.
+- Các thay đổi 4A được phép commit và push trong nhiệm vụ chốt chặng này; chưa deploy.
