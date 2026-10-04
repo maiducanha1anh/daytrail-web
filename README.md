@@ -1,6 +1,6 @@
 # DayTrail Web
 
-Frontend React + TypeScript + Vite của DayTrail. Chặng 1B.2 đã bổ sung giao diện đăng ký, đăng nhập, khôi phục phiên và đăng xuất bằng cookie `HttpOnly`. Khung **Hôm nay**, **Lịch**, **Hành trình** vẫn là nội dung nền; các nghiệp vụ công việc, lịch, nhật ký và ảnh chưa được triển khai.
+Frontend React + TypeScript + Vite của DayTrail. Chặng 2B bổ sung danh sách, chi tiết, note và tổng quan công việc trong **Hôm nay**, cùng lịch tháng nhỏ để chọn ngày và lập kế hoạch cơ bản trong **Lịch**. Nhật ký ngày, ảnh, công việc lặp và **Hành trình** vẫn chưa được triển khai.
 
 ## Chạy trên Windows
 
@@ -25,11 +25,13 @@ npm run dev
 Mở `http://localhost:5173`. `VITE_API_BASE_URL` mặc định là `http://localhost:4000`. Kết quả mong đợi:
 
 - Khi chưa có phiên: hiển thị form đăng nhập/đăng ký.
-- Khi đăng nhập thành công: hiển thị tên người dùng và khung ba mục điều hướng.
+- Khi đăng nhập thành công: hiển thị tên người dùng, công việc hôm nay và ba mục điều hướng.
 - Khi tải lại trang: `/api/auth/me` khôi phục phiên mà không hiện thoáng nội dung sai trạng thái.
 - Khi đăng xuất: quay về form đăng nhập.
+- Trong **Lịch**: chọn ngày rồi tạo, sửa, chuyển ngày hoặc xóa công việc.
+- Trong **Hôm nay**: mở chi tiết để lưu note và đánh dấu hoàn thành; tổng quan cập nhật theo dữ liệu backend.
 
-Nếu frontend báo mất kết nối, mở `http://localhost:4000/api/health` và `http://localhost:4000/api/ready`. Nếu một endpoint không trả HTTP 200, xử lý backend theo `C:\daytrail-api\docs\OPERATIONS.md` trước.
+Nếu frontend báo mất kết nối, mở `http://localhost:4000/api/health` và `http://localhost:4000/api/ready`. Header chỉ hiện **Dữ liệu sẵn sàng** khi cả API và MongoDB đều hoạt động; **Dữ liệu gián đoạn** nghĩa API còn chạy nhưng `/ready` đang 503. Nếu một endpoint không trả HTTP 200, xử lý backend theo `C:\daytrail-api\docs\OPERATIONS.md` trước.
 
 ## Kiểm tra source
 
@@ -43,16 +45,23 @@ npm run build
 
 Kết quả mong đợi: cả ba lệnh kết thúc với exit code 0 và Vite tạo thư mục `dist`. Không commit `dist`.
 
-## Kiểm tra thủ công luồng tài khoản
+Kết quả nghiệm thu chặng 2B: Codex đã chạy lại cả ba lệnh và kiểm tra Chrome headless với backend riêng cổng 4013, frontend riêng cổng 5174 và database `daytrail_test`. Luồng công việc, khôi phục phiên, xử lý HTTP 503 và responsive 390/1440 px đều PASS; dữ liệu test đã được dọn theo marker riêng.
+
+## Kiểm tra thủ công luồng tài khoản và công việc
 
 Trong trình duyệt tại `http://localhost:5173`:
 
 1. Đăng ký bằng tên, email và mật khẩu hợp lệ; kết quả mong đợi là chuyển về đăng nhập, điền sẵn email và xóa mật khẩu.
 2. Đăng nhập; tải lại trang để kiểm tra phiên vẫn còn.
-3. Chuyển giữa Hôm nay/Lịch/Hành trình, sau đó đăng xuất.
-4. Mở DevTools → Application: không được có token hoặc mật khẩu trong Local Storage/Session Storage. Cookie phiên là `HttpOnly` nên JavaScript không đọc được.
+3. Mở **Lịch**, chọn hôm nay và tạo một công việc. Kết quả mong đợi: công việc xuất hiện đúng ngày; form không có note hoặc trạng thái hoàn thành.
+4. Mở chi tiết công việc, nhập note rồi tích hoàn thành. Tải lại trang; note và trạng thái phải còn nguyên.
+5. Thử bỏ hoàn thành, sửa, chuyển ngày và xóa. Danh sách cùng tổng quan phải cập nhật sau khi backend xác nhận.
+6. Nhập note nhưng chưa lưu rồi đóng chi tiết hoặc đổi ngày. DayTrail phải cho chọn lưu, bỏ thay đổi hoặc tiếp tục chỉnh.
+7. Thu trình duyệt về khoảng 390 px và mở chi tiết. Trang không được tràn ngang; nội dung dialog cuộn được và các nút vẫn thao tác được.
+8. Đăng xuất rồi đăng nhập tài khoản khác. Công việc của tài khoản trước không được xuất hiện.
+9. Mở DevTools → Application: không được có token hoặc mật khẩu trong Local Storage/Session Storage. Cookie phiên là `HttpOnly` nên JavaScript không đọc được.
 
-Nếu gặp lỗi, mở DevTools → Network, kiểm tra request `/api/auth/*` và đối chiếu mã HTTP với [hợp đồng API](docs/API_CONTRACT.md). Không sao chép cookie hoặc thông tin đăng nhập khi gửi log hỗ trợ.
+Nếu gặp lỗi, mở DevTools → Network, kiểm tra request `/api/auth/*` hoặc `/api/tasks*` và đối chiếu mã HTTP với [hợp đồng API](docs/API_CONTRACT.md). Không sao chép cookie hoặc thông tin đăng nhập khi gửi log hỗ trợ.
 
 ## Tài liệu
 

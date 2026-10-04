@@ -204,4 +204,19 @@ Gửi JSON `{}` cùng Origin hợp lệ. Thành công trả HTTP 204 và không 
 
 Phần trăm là số nguyên làm tròn gần nhất. Ngày không có công việc trả toàn bộ số đếm và phần trăm bằng 0.
 
-Chưa triển khai lịch lặp, ảnh hoặc frontend công việc trong chặng 2A.
+Frontend chặng 2B đã dùng các endpoint này cho Hôm nay và lịch tháng chọn ngày. Lịch lặp và ảnh vẫn chưa được triển khai; `repeat` chỉ là `none`.
+
+## Database tạm thời không sẵn sàng
+
+Endpoint cần MongoDB trả HTTP 503 khi kết nối database bị gián đoạn:
+
+```json
+{
+  "code": "DATABASE_UNAVAILABLE",
+  "error": "Dữ liệu tạm thời không sẵn sàng. Vui lòng thử lại sau."
+}
+```
+
+Response có `Retry-After: 5`, không chứa URI hoặc chi tiết Atlas. Với `/api/auth/me`, HTTP 503 không có nghĩa phiên hết hạn: client phải giữ trạng thái chưa xác định và cho thử lại, không chuyển sang đăng nhập như khi nhận HTTP 401.
+
+`GET /api/health` chỉ xác nhận Express đang chạy. `GET /api/ready` mới xác nhận MongoDB ping thành công.

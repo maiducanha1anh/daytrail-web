@@ -155,3 +155,72 @@ Kết luận: chặng 1B.2 đã được người dùng duyệt. Thay đổi đ�
 - Công việc lặp, ảnh, nhật ký ngày và Hành trình.
 
 Kết luận hiện tại: chặng 2A đã được người dùng duyệt. Các thay đổi được phép commit và push trong nhiệm vụ chốt chặng; chưa deploy.
+
+## Chặng 2B — Giao diện công việc và lịch cơ bản
+
+### Đã triển khai
+
+- Tách frontend thành `features/tasks`, `features/today` và `features/calendar`; `App.tsx` chỉ giữ phiên, điều hướng cấp cao và ghép màn hình.
+- Hôm nay có đúng ba phần: danh sách công việc thật, nhật ký ở trạng thái chưa triển khai và tổng quan ngày từ backend. Không có nút tạo công việc trong Hôm nay.
+- Lịch có lịch tháng nhỏ, chọn được ngày quá khứ/hôm nay/tương lai, nút về hôm nay và form tạo/sửa đúng contract. Mobile có thể mở/thu lịch tháng.
+- Danh sách tải đủ mọi trang với `limit=100`, không dừng ở 50 việc. Request cũ bị hủy và kiểm tra ID để không ghi đè ngày hoặc tài khoản đang xem.
+- Chi tiết hỗ trợ note và đặt hoàn thành rõ ràng. Note chưa lưu được lưu thành công trước khi cập nhật hoàn thành; lỗi bước sau không làm mất dữ liệu bước trước.
+- Note chưa lưu được bảo vệ khi đóng chi tiết, đổi ngày, đổi tab hoặc đăng xuất: lưu và tiếp tục, bỏ thay đổi hoặc tiếp tục chỉnh.
+- Có loading, lỗi, thử lại, trạng thái trống và khóa gửi trùng. Logout làm unmount vùng tài khoản và xóa dữ liệu công việc trong bộ nhớ.
+- Chưa triển khai editor nhật ký, ảnh, lịch lặp hoặc các chế độ lịch đầy đủ.
+
+### Codex kiểm tra
+
+- Frontend `npm run typecheck`: PASS.
+- Frontend `npm run lint`: PASS, 0 error/warning.
+- Frontend `npm run build`: PASS với Vite 8.3.2.
+- Chrome headless dùng backend test cổng 4013, frontend test cổng 5174 và database thực tế `daytrail_test`; không dừng server người dùng.
+- Luồng đăng ký/đăng nhập → Lịch → tạo → note → hoàn thành → reload → bỏ hoàn thành → sửa → chuyển ngày → xóa: PASS.
+- Note và trạng thái còn nguyên sau reload; tổng quan cập nhật sau chuyển ngày/xóa: PASS.
+- Đổi ngày nhanh không hiện dữ liệu của ngày cũ; lỗi mạng giữ bản nháp, có thử lại; bảo vệ note chưa lưu có đủ ba lựa chọn: PASS.
+- Tài khoản thứ hai không thấy công việc của tài khoản thứ nhất; Local Storage, Session Storage và `document.cookie` không chứa token đọc được: PASS.
+- Responsive Chrome 390 × 852: viewport/root/dialog cùng rộng 390 px, không tràn ngang và dialog cuộn được. Desktop 1440 × 900: không tràn ngang; lịch và nội dung ngày hiển thị hai cột.
+- Đóng form bằng phím Escape: PASS. Source đặt focus ban đầu vào nút đóng và giữ vòng Tab trong dialog; chưa kiểm chứng riêng toàn bộ thứ tự focus bằng công cụ hỗ trợ. Console có 0 lỗi; một request lỗi mạng được chủ động tạo để kiểm tra nhánh thử lại.
+- Cleanup sau kiểm thử xóa đúng 2 user, 1 session và 1 task còn lại của run; các task khác đã được xóa qua UI. Không drop database/collection.
+
+### Yêu cầu V1 đã chốt, chưa triển khai
+
+- Nhật ký ngày độc lập với công việc; ngày không có công việc vẫn viết nhật ký và thêm nhiều ảnh.
+- Ảnh nhật ký có chú thích. Note/ảnh công việc xem lại từ chi tiết công việc ở ngày cũ.
+- Hồ sơ/lời mở đầu cá nhân, video hồi tưởng và chia sẻ hành trình để sau V1.
+
+### Lỗi phát hiện trên môi trường thật trước nghiệm thu
+
+- Người dùng kiểm tra và phát hiện chuyển ngày cho cả công việc chưa làm/đã hoàn thành cùng thao tác **Lưu và tiếp tục** đều báo lỗi máy chủ; reload không kiểm tra được phiên.
+- Console người dùng cho thấy `/api/auth/me` ban đầu trả HTTP 500, sau đó `/api/health` và `/api/auth/me` đều `ERR_CONNECTION_REFUSED`. Backend ghi `Request failed (MongoServerSelectionError)`.
+- Codex xác nhận lúc backend cũ còn nghe cổng 4000: `/api/health` trả 200 nhưng `/api/ready` trả 503 ba lần liên tiếp. Điều này chứng minh Express còn sống nhưng MongoDB đã mất readiness; lỗi không nằm ở payload chuyển ngày/note.
+- Tiến trình lúc chẩn đoán: backend Node 22.23.3 từ `C:\daytrail-api`, frontend Node 22.23.3 từ `C:\daytrail-web`. Sau khi `tsx watch` reload source backend, tiến trình con cũ đã thoát và không còn listener 4000; tiến trình watch cha vẫn còn. Vì startup bắt buộc connect/ping trước khi mở cổng, lần reload thất bại dẫn tới connection refused.
+- DNS Node dùng `192.168.0.1`; SRV trả đủ 3 node và TXT hợp lệ. TCP 27017 tới cả 3 node PASS nhưng TLS cả 3 cùng lỗi `ERR_SSL_TLSV1_ALERT_INTERNAL_ERROR`.
+- Ping riêng bằng cả URI `daytrail` và `daytrail_test` đều thất bại cùng lỗi TLS trên cùng cluster. Trang trạng thái MongoDB Cloud báo Operational; Atlas CLI không có trên máy nên Codex không đọc được IP Access List hoặc trạng thái riêng của cluster.
+- Trong hai lần chẩn đoán, IP công cộng dạng che đã đổi từ `42.118.x.x` sang `1.55.x.x`. Người dùng sau đó thêm IP hiện tại vào Atlas IP Access List, xác nhận trạng thái Active và backend kết nối lại database `daytrail` thành công. Đây là thao tác khôi phục Network Access, không phải thay đổi source.
+
+### Sửa lỗi và kiểm tra độc lập
+
+- Backend phân loại lỗi lựa chọn server/network MongoDB thành HTTP 503 `DATABASE_UNAVAILABLE`, thêm `Retry-After: 5`, log mã lỗi đã che và không đổi thành 401 hoặc xóa cookie.
+- Thêm `socketTimeoutMS` hữu hạn bằng timeout kết nối hiện có.
+- Frontend kiểm tra cả `/api/health` và `/api/ready` mỗi 60 giây: phân biệt **Dữ liệu sẵn sàng**, **Dữ liệu gián đoạn** và **Không kết nối API**.
+- `/me` 503 giữ trạng thái phiên chưa xác định và có nút thử lại. Lỗi ghi 503 giữ nguyên note/bản nháp; không tự gửi lại thao tác ghi.
+### Kiểm chứng sau khi Atlas phục hồi
+
+#### Bằng chứng người dùng cung cấp
+
+- Backend chạy bình thường tại cổng 4000, kết nối database `daytrail`; frontend chạy tại 5173.
+- Người dùng thử lại các tính năng hiện có và thấy hoạt động ổn định.
+
+#### Codex tự kiểm tra
+
+- Backend thật: `/api/health` và `/api/ready` đều HTTP 200 sau khi Network Access được khôi phục.
+- Backend `typecheck`, `lint`, `build`: PASS. Toàn bộ `npm test` chạy trên database đã xác nhận là `daytrail_test`: 18 PASS, 0 fail/cancelled/skipped/todo.
+- Test database outage xác nhận `/health` vẫn 200, `/ready` 503, `/me` có cookie trả 503 `DATABASE_UNAVAILABLE`, có `Retry-After` và không có `Set-Cookie`.
+- Frontend `typecheck`, `lint`, `build`: PASS.
+- Chrome headless dùng backend test cổng 4013, frontend test cổng 5174 và `daytrail_test`: chuyển ngày công việc chưa làm/đã hoàn thành, giữ note/nội dung/trạng thái, lưu note rồi tiếp tục, bỏ thay đổi, tiếp tục chỉnh, reload phiên, tạo/sửa/xóa và tổng quan đều PASS.
+- Khi giả lập HTTP 503 trong browser, note đang soạn được giữ lại, không có thông báo thành công giả; thử lại sau phục hồi lưu thành công. Header hiện **Dữ liệu gián đoạn**, `/me` không bị coi là hết phiên và nút **Thử lại** khôi phục giao diện. Trong cửa sổ kiểm tra ngắn không có vòng lặp `ready` hoặc `me`.
+- Desktop 1440 px và mobile 390 px không tràn ngang; dialog mobile rộng 390 px và cuộn được. Console có 0 lỗi, runtime exception có 0; các request `ERR_ABORTED` là request cũ được `AbortController` hủy khi reload hoặc đổi ngày.
+- Cleanup cuối trên `daytrail_test`: còn 0 user, session và task của run; không drop database hoặc collection. Server 4000/5173 của người dùng không bị dừng.
+
+Kết luận: chặng 2B đã được người dùng duyệt sau khi thử lại giao diện và xác nhận các chức năng hiện có hoạt động ổn định. Codex đã kiểm chứng lại các luồng từng gặp lỗi, giao diện desktop/mobile và cách ứng dụng phản hồi khi database trả 503 rồi phục hồi. Các thay đổi được phép commit và push trong nhiệm vụ chốt chặng này; chưa deploy, chưa triển khai lịch lặp, ảnh, nhật ký hay tính năng chặng sau.

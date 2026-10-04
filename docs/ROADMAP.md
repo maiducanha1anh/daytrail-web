@@ -19,15 +19,15 @@ Frontend/backend chạy được, health API, giao diện responsive, điều h�
 Triển khai dữ liệu công việc, quyền sở hữu, màn hình Hôm nay và chi tiết công việc. Điều kiện nghiệm thu: API, UI responsive và kiểm thử dữ liệu theo tài khoản đều đạt.
 
 - 2A — Backend công việc một lần theo ngày: đã triển khai, kiểm chứng và nghiệm thu.
-- Frontend công việc và màn hình Hôm nay: chưa bắt đầu.
+- 2B — Frontend công việc trong Hôm nay và lập kế hoạch cơ bản trong Lịch: đã triển khai, kiểm chứng và được người dùng duyệt.
 
 ## Chặng 3 — Lịch và công việc lặp
 
-Triển khai chế độ năm/tháng/tuần/ngày, tạo công việc theo ngày và quy tắc lặp. Điều kiện nghiệm thu: các phạm vi sửa/xóa và lịch sử dữ liệu được kiểm thử.
+Mở rộng từ lịch tháng nhỏ của chặng 2B sang chế độ năm/tháng/tuần/ngày đầy đủ và quy tắc lặp. Điều kiện nghiệm thu: các phạm vi sửa/xóa và lịch sử dữ liệu được kiểm thử.
 
 ## Chặng 4 — Nhật ký và ảnh
 
-Triển khai nhật ký riêng tư, upload ảnh và metadata object storage. Điều kiện nghiệm thu: quyền riêng tư, lỗi upload và dọn file được kiểm thử.
+Triển khai nhật ký riêng tư độc lập với công việc: ngày không có công việc vẫn có nhật ký, hỗ trợ nhiều ảnh và chú thích từng ảnh. Bổ sung ảnh công việc để xem lại từ chi tiết công việc ở ngày cũ; file nằm trong object storage và MongoDB lưu metadata. Điều kiện nghiệm thu: quyền riêng tư, lỗi upload và dọn file được kiểm thử.
 
 ## Chặng 5 — Hành trình
 
@@ -37,4 +37,4 @@ Triển khai timeline, khoảnh khắc nổi bật và giai đoạn cá nhân li
 
 Kiểm thử tổng thể, sao lưu, khôi phục, thùng rác và triển khai V1. Điều kiện nghiệm thu: checklist vận hành, bảo mật, backup/restore và smoke test production đều đạt.
 
-AI nằm sau phạm vi V1 và chưa được triển khai.
+Hồ sơ/lời mở đầu cá nhân, video hồi tưởng, chia sẻ hành trình và AI nằm sau phạm vi V1, chưa được triển khai.

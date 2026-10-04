@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { AuthPanel } from './AuthPanel'
 import { ApiError, dayTrailApi, type DayTrailUser } from './api'
+import { CalendarPage } from './features/calendar/CalendarPage'
+import type { GuardRegistrar, NavigationGuard } from './features/tasks/TaskDetailDialog'
+import { TodayPage } from './features/today/TodayPage'
 
-type HealthState = 'Đang kiểm tra' | 'Đã kết nối' | 'Chưa kết nối'
+type HealthState = 'checking' | 'ready' | 'degraded' | 'offline'
 type Section = 'Hôm nay' | 'Lịch' | 'Hành trình'
 type SessionState =
   | { status: 'checking' }
@@ -10,31 +13,46 @@ type SessionState =
   | { status: 'guest'; message?: string }
   | { status: 'authenticated'; user: DayTrailUser }
 
-const sections: Record<Section, { title: string; description: string }> = {
-  'Hôm nay': { title: 'Khung nền đã sẵn sàng', description: 'Danh sách công việc, nhật ký ngày và tổng quan ngày sẽ được triển khai ở các chặng tiếp theo.' },
-  'Lịch': { title: 'Lịch đang được chuẩn bị', description: 'Tạo công việc theo ngày, các chế độ xem lịch và lặp lại chưa được triển khai trong chặng này.' },
-  'Hành trình': { title: 'Hành trình đang được chuẩn bị', description: 'Timeline, khoảnh khắc nổi bật và các giai đoạn cá nhân sẽ được triển khai sau Hôm nay và Lịch.' },
-}
+const sections: Section[] = ['Hôm nay', 'Lịch', 'Hành trình']
 
 function HealthBadge() {
-  const [health, setHealth] = useState<HealthState>('Đang kiểm tra')
+  const [health, setHealth] = useState<HealthState>('checking')
 
   useEffect(() => {
-    const controller = new AbortController()
-    dayTrailApi.health(controller.signal)
-      .then(() => setHealth('Đã kết nối'))
-      .catch((error: unknown) => {
-        if (!(error instanceof Error && error.name === 'AbortError')) setHealth('Chưa kết nối')
-      })
-    return () => controller.abort()
+    let controller: AbortController | undefined
+    let disposed = false
+    async function checkServices() {
+      controller?.abort()
+      controller = new AbortController()
+      try {
+        await dayTrailApi.health(controller.signal)
+        try {
+          await dayTrailApi.ready(controller.signal)
+          if (!disposed) setHealth('ready')
+        } catch (error: unknown) {
+          if (!disposed && !(error instanceof Error && error.name === 'AbortError')) setHealth('degraded')
+        }
+      } catch (error: unknown) {
+        if (!disposed && !(error instanceof Error && error.name === 'AbortError')) setHealth('offline')
+      }
+    }
+    void checkServices()
+    const timer = window.setInterval(() => void checkServices(), 60_000)
+    return () => {
+      disposed = true
+      window.clearInterval(timer)
+      controller?.abort()
+    }
   }, [])
 
-  return <span className={`status ${health === 'Đã kết nối' ? 'ok' : health === 'Chưa kết nối' ? 'error' : ''}`}>
-    <span aria-hidden="true">●</span> {health}
+  const label = health === 'ready' ? 'Dữ liệu sẵn sàng' : health === 'degraded' ? 'Dữ liệu gián đoạn' : health === 'offline' ? 'Không kết nối API' : 'Đang kiểm tra dịch vụ'
+  const title = health === 'degraded' ? 'API đang chạy nhưng database chưa sẵn sàng.' : undefined
+  return <span className={`status ${health === 'ready' ? 'ok' : health === 'degraded' ? 'degraded' : health === 'offline' ? 'error' : ''}`} title={title}>
+    <span aria-hidden="true">●</span> {label}
   </span>
 }
 
-function BrandHeader({ actions }: { actions?: React.ReactNode }) {
+function BrandHeader({ actions }: { actions?: ReactNode }) {
   return <header className="site-header">
     <div className="brand"><span className="mark" aria-hidden="true">D</span><span>DayTrail</span></div>
     <div className="header-actions"><HealthBadge />{actions}</div>
@@ -72,7 +90,7 @@ function GuestView({ message, onAuthenticated }: { message?: string; onAuthentic
         <p className="eyebrow">Không gian cá nhân</p>
         <h2 id="welcome-title">Mỗi ngày một bước tiến.</h2>
         <p>Nơi công việc, nhật ký và hành trình của bạn được giữ cùng nhau — riêng tư theo từng tài khoản.</p>
-        <div className="foundation-note"><span aria-hidden="true">✦</span><span>Khung sản phẩm đã sẵn sàng. Nội dung nghiệp vụ sẽ được bổ sung ở các chặng tiếp theo.</span></div>
+        <div className="foundation-note"><span aria-hidden="true">✦</span><span>Đăng nhập để xem công việc và kế hoạch theo ngày của riêng bạn.</span></div>
       </section>
       <AuthPanel onAuthenticated={onAuthenticated} sessionMessage={message} />
     </div>
@@ -80,23 +98,46 @@ function GuestView({ message, onAuthenticated }: { message?: string; onAuthentic
   </main>
 }
 
-function AuthenticatedView({ user, onLogout, logoutError, loggingOut }: {
+function JourneyPlaceholder() {
+  return <section className="content-card journey-placeholder"><div className="card-icon" aria-hidden="true">✦</div><h1>Hành trình đang được chuẩn bị</h1><p>Timeline, khoảnh khắc nổi bật và các giai đoạn cá nhân sẽ được triển khai ở chặng sau.</p><span className="future-badge">Chưa triển khai</span></section>
+}
+
+function AuthenticatedView({ user, onLogout, onSessionExpired, logoutError, loggingOut }: {
   user: DayTrailUser
   onLogout: () => void
+  onSessionExpired: () => void
   logoutError?: string
   loggingOut: boolean
 }) {
   const [section, setSection] = useState<Section>('Hôm nay')
-  const current = sections[section]
-  return <main className="app">
+  const navigationGuardRef = useRef<NavigationGuard | undefined>(undefined)
+
+  const registerNavigationGuard: GuardRegistrar = useCallback((guard) => {
+    navigationGuardRef.current = guard
+  }, [])
+
+  const requestNavigation = useCallback((next: () => void) => {
+    const guard = navigationGuardRef.current
+    if (guard) guard(next)
+    else next()
+  }, [])
+
+  function selectSection(nextSection: Section) {
+    if (nextSection === section) return
+    requestNavigation(() => setSection(nextSection))
+  }
+
+  return <main className="app product-app">
     <BrandHeader actions={<div className="account-actions">
       <span className="user-name" title={user.email}>Xin chào, <strong>{user.displayName}</strong></span>
-      <button className="logout-button" type="button" onClick={onLogout} disabled={loggingOut}>{loggingOut ? 'Đang đăng xuất…' : 'Đăng xuất'}</button>
+      <button className="logout-button" type="button" onClick={() => requestNavigation(onLogout)} disabled={loggingOut}>{loggingOut ? 'Đang đăng xuất…' : 'Đăng xuất'}</button>
     </div>} />
     {logoutError && <div className="form-message error logout-error" role="alert">{logoutError}</div>}
-    <section className="hero"><p className="eyebrow">Không gian cá nhân</p><h1>Mỗi ngày một bước tiến.</h1><p className="muted">Nơi công việc, nhật ký và hành trình của bạn được giữ cùng nhau.</p></section>
-    <nav className="tabs" aria-label="Điều hướng chính">{(Object.keys(sections) as Section[]).map((item) => <button key={item} className={section === item ? 'active' : ''} onClick={() => setSection(item)} aria-current={section === item ? 'page' : undefined}>{item}</button>)}</nav>
-    <section className="card"><div className="card-icon" aria-hidden="true">✦</div><h2>{current.title}</h2><p>{current.description}</p><span className="badge">Nội dung nền · Chưa có nghiệp vụ</span></section>
+    <section className="product-intro"><div><p className="eyebrow">Không gian cá nhân</p><h1>Mỗi ngày một bước tiến.</h1></div><p>Công việc và những điều bạn muốn ghi nhớ, theo nhịp riêng của bạn.</p></section>
+    <nav className="tabs" aria-label="Điều hướng chính">{sections.map((item) => <button key={item} type="button" className={section === item ? 'active' : ''} onClick={() => selectSection(item)} aria-current={section === item ? 'page' : undefined}>{item}</button>)}</nav>
+    {section === 'Hôm nay' && <TodayPage onOpenCalendar={() => selectSection('Lịch')} onUnauthorized={onSessionExpired} registerNavigationGuard={registerNavigationGuard} />}
+    {section === 'Lịch' && <CalendarPage onUnauthorized={onSessionExpired} registerNavigationGuard={registerNavigationGuard} requestNavigation={requestNavigation} />}
+    {section === 'Hành trình' && <JourneyPlaceholder />}
     <Footer />
   </main>
 }
@@ -123,7 +164,12 @@ export function App() {
           setSession({ status: 'guest', message: 'Bạn chưa đăng nhập hoặc phiên trước đã hết hạn.' })
           return
         }
-        setSession({ status: 'error', message: error instanceof ApiError && error.kind === 'network' ? 'Không thể kết nối đến backend. Hãy kiểm tra máy chủ rồi thử lại.' : 'Máy chủ chưa thể kiểm tra phiên. Vui lòng thử lại.' })
+        const message = error instanceof ApiError && error.kind === 'network'
+          ? 'Không thể kết nối đến backend. Hãy kiểm tra máy chủ rồi thử lại.'
+          : error instanceof ApiError && error.status === 503
+            ? 'API đang chạy nhưng database tạm thời chưa sẵn sàng. Phiên của bạn chưa bị coi là hết hạn; hãy khôi phục kết nối database rồi thử lại.'
+            : 'Máy chủ chưa thể kiểm tra phiên. Vui lòng thử lại.'
+        setSession({ status: 'error', message })
       })
   }, [])
 
@@ -154,6 +200,13 @@ export function App() {
     setSession({ status: 'authenticated', user })
   }
 
+  const handleSessionExpired = useCallback(() => {
+    requestIdRef.current += 1
+    controllerRef.current?.abort()
+    setLogoutError(undefined)
+    setSession({ status: 'guest', message: 'Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại để tiếp tục.' })
+  }, [])
+
   async function handleLogout() {
     if (loggingOut) return
     setLoggingOut(true)
@@ -176,5 +229,5 @@ export function App() {
   if (session.status === 'checking') return <SessionChecking />
   if (session.status === 'error') return <SessionError message={session.message} onRetry={restoreSession} />
   if (session.status === 'guest') return <GuestView message={session.message} onAuthenticated={handleAuthenticated} />
-  return <AuthenticatedView user={session.user} onLogout={handleLogout} logoutError={logoutError} loggingOut={loggingOut} />
+  return <AuthenticatedView user={session.user} onLogout={handleLogout} onSessionExpired={handleSessionExpired} logoutError={logoutError} loggingOut={loggingOut} />
 }

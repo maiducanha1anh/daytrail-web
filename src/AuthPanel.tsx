@@ -21,6 +21,7 @@ function requestError(error: unknown, mode: AuthMode) {
   if (!(error instanceof ApiError)) return 'Đã xảy ra lỗi không mong đợi. Vui lòng thử lại.'
   if (error.kind === 'network') return 'Không thể kết nối đến máy chủ. Hãy kiểm tra backend và thử lại.'
   if (error.status === 429) return 'Bạn đã thử quá nhiều lần. Vui lòng chờ một lúc rồi thử lại.'
+  if (error.status === 503) return 'Database tạm thời chưa sẵn sàng. Vui lòng kiểm tra kết nối rồi thử lại.'
   if (error.status && error.status >= 500) return 'Máy chủ đang gặp lỗi. Vui lòng thử lại sau.'
   if (mode === 'login' && error.status === 401) return 'Email hoặc mật khẩu không đúng.'
   return error.message

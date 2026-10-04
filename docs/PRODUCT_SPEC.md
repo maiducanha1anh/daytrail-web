@@ -4,9 +4,11 @@ DayTrail là ứng dụng quản lý công việc cá nhân kết hợp nhật k
 
 ## Hôm nay
 
-Màn hình gồm danh sách công việc, nhật ký ngày và tổng quan ngày. Mỗi công việc hiển thị trạng thái, có menu sửa, xóa, chuyển ngày và bảng chi tiết gồm thông tin, ghi chú, ảnh và ô hoàn thành.
+Màn hình gồm danh sách công việc, nhật ký ngày và tổng quan ngày. Mỗi công việc hiển thị trạng thái, có thao tác sửa, xóa, chuyển ngày và bảng chi tiết gồm thông tin, note, ảnh và ô hoàn thành.
 
-Ghi chú và ảnh là tùy chọn, chỉ được chỉnh sửa sau khi công việc hoàn thành. Không tạo công việc trực tiếp tại màn hình Hôm nay.
+Note công việc là nội dung riêng với mô tả kế hoạch và được chỉnh từ chi tiết công việc, kể cả trước khi hoàn thành. Note và ảnh của công việc cũ được xem lại từ chính chi tiết công việc ở ngày đó. Không tạo công việc trực tiếp tại màn hình Hôm nay.
+
+Nhật ký ngày độc lập với công việc. Ngày không có công việc vẫn viết được nhật ký và thêm nhiều ảnh; mỗi ảnh nhật ký có thể có chú thích. Nhật ký và ảnh chưa được triển khai trong chặng 2B.
 
 ## Lịch
 
@@ -27,6 +29,8 @@ Timeline (dòng thời gian) theo năm/tháng/tuần/ngày giúp đọc lại c�
 
 Một giai đoạn cá nhân gồm tên, khoảng ngày, ảnh bìa, lời giới thiệu và tổng kết. Giai đoạn liên kết đến dữ liệu gốc, không sao chép nhật ký.
 
+Hồ sơ và lời mở đầu cá nhân, video hồi tưởng và chia sẻ hành trình nằm sau V1.
+
 ## Tài khoản và dữ liệu
 
 Sản phẩm hỗ trợ đăng ký, đăng nhập, đăng xuất và khôi phục phiên. Mật khẩu phải được hash bằng thuật toán chuyên dụng; phiên phải an toàn; backend kiểm tra quyền sở hữu trên mỗi tài nguyên. Không lưu token đăng nhập trong `localStorage`.
@@ -39,6 +43,7 @@ Nhật ký và ảnh mặc định là riêng tư. Ngày cá nhân dùng múi gi
 - Backend đăng ký, đăng nhập và quản lý phiên của chặng 1B.1 đã nghiệm thu.
 - Giao diện đăng ký, đăng nhập, khôi phục phiên và đăng xuất của chặng 1B.2 đã nghiệm thu.
 - Backend công việc một lần theo ngày của chặng 2A đã được triển khai, kiểm chứng và nghiệm thu.
-- Frontend công việc, lịch lặp, ảnh, nhật ký ngày, Hành trình đầy đủ, quên mật khẩu, xác minh email, đăng nhập Google, chỉnh hồ sơ và AI chưa được triển khai.
+- Giao diện công việc trong Hôm nay và lập kế hoạch cơ bản trong Lịch của chặng 2B đã được triển khai, kiểm chứng và nghiệm thu.
+- Lịch lặp, ảnh, nhật ký ngày, Hành trình đầy đủ, quên mật khẩu, xác minh email, đăng nhập Google, chỉnh hồ sơ và AI chưa được triển khai.
 
 Chi tiết bằng chứng nằm trong [PROGRESS.md](PROGRESS.md); thứ tự triển khai nằm trong [ROADMAP.md](ROADMAP.md).
