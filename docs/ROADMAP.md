@@ -25,6 +25,9 @@ Triển khai dữ liệu công việc, quyền sở hữu, màn hình Hôm nay v
 
 Mở rộng từ lịch tháng nhỏ của chặng 2B sang chế độ năm/tháng/tuần/ngày đầy đủ và quy tắc lặp. Điều kiện nghiệm thu: các phạm vi sửa/xóa và lịch sử dữ liệu được kiểm thử.
 
+- 3A — Các chế độ xem Năm/Tháng/Tuần/Ngày, responsive và tổng quan theo khoảng: đã triển khai, kiểm chứng và được người dùng duyệt.
+- 3B — Công việc lặp và phạm vi sửa/xóa: chưa triển khai.
+
 ## Chặng 4 — Nhật ký và ảnh
 
 Triển khai nhật ký riêng tư độc lập với công việc: ngày không có công việc vẫn có nhật ký, hỗ trợ nhiều ảnh và chú thích từng ảnh. Bổ sung ảnh công việc để xem lại từ chi tiết công việc ở ngày cũ; file nằm trong object storage và MongoDB lưu metadata. Điều kiện nghiệm thu: quyền riêng tư, lỗi upload và dọn file được kiểm thử.

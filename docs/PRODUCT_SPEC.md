@@ -44,6 +44,7 @@ Nhật ký và ảnh mặc định là riêng tư. Ngày cá nhân dùng múi gi
 - Giao diện đăng ký, đăng nhập, khôi phục phiên và đăng xuất của chặng 1B.2 đã nghiệm thu.
 - Backend công việc một lần theo ngày của chặng 2A đã được triển khai, kiểm chứng và nghiệm thu.
 - Giao diện công việc trong Hôm nay và lập kế hoạch cơ bản trong Lịch của chặng 2B đã được triển khai, kiểm chứng và nghiệm thu.
+- Bốn chế độ Lịch Năm/Tháng/Tuần/Ngày của chặng 3A đã được triển khai, kiểm chứng và người dùng duyệt.
 - Lịch lặp, ảnh, nhật ký ngày, Hành trình đầy đủ, quên mật khẩu, xác minh email, đăng nhập Google, chỉnh hồ sơ và AI chưa được triển khai.
 
 Chi tiết bằng chứng nằm trong [PROGRESS.md](PROGRESS.md); thứ tự triển khai nằm trong [ROADMAP.md](ROADMAP.md).

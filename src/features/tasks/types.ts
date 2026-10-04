@@ -39,3 +39,9 @@ export type TaskListResponse = {
   tasks: Task[]
   pagination: { page: number; limit: number; total: number; pages: number }
 }
+
+export type TaskSummaryRangeResponse = {
+  from: string
+  to: string
+  summaries: TaskSummary[]
+}

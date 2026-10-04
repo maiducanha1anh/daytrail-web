@@ -224,3 +224,36 @@ Kết luận hiện tại: chặng 2A đã được người dùng duyệt. Các
 - Cleanup cuối trên `daytrail_test`: còn 0 user, session và task của run; không drop database hoặc collection. Server 4000/5173 của người dùng không bị dừng.
 
 Kết luận: chặng 2B đã được người dùng duyệt sau khi thử lại giao diện và xác nhận các chức năng hiện có hoạt động ổn định. Codex đã kiểm chứng lại các luồng từng gặp lỗi, giao diện desktop/mobile và cách ứng dụng phản hồi khi database trả 503 rồi phục hồi. Các thay đổi được phép commit và push trong nhiệm vụ chốt chặng này; chưa deploy, chưa triển khai lịch lặp, ảnh, nhật ký hay tính năng chặng sau.
+
+## Chặng 3A — Các chế độ xem Lịch
+
+### Đã triển khai
+
+- Thanh Lịch có Năm/Tháng/Tuần/Ngày, nút trước/sau theo đúng khoảng, **Hôm nay**, tiêu đề khoảng và **Tạo công việc** cho ngày đang chọn.
+- Desktop giữ mini-calendar bên trái và lịch chính bên phải. Mobile dùng thanh điều khiển gọn, mini-calendar mở/thu và Tuần chuyển thành danh sách dọc.
+- Năm hiển thị 12 tháng cùng tổng số và tỷ lệ hoàn thành; chỉ gọi API tổng hợp, không tải toàn bộ note/nội dung cả năm.
+- Tháng dùng lưới 7 cột bắt đầu thứ Hai. Ngày quá khứ hiện số hoàn thành/tổng số và tỷ lệ; hôm nay/tương lai hiện số việc đã lên lịch; ngày trống không bị coi là 100%.
+- Tuần hiển thị đủ 7 ngày; công việc trùng giờ xếp thành thẻ riêng không che nhau. Desktop dùng 7 cột, mobile dùng danh sách ngày.
+- Ngày tái sử dụng danh sách, tổng quan, chi tiết, note, hoàn thành, sửa, chuyển ngày và xóa của chặng 2B.
+- Mọi chuyển ngày/chế độ/khoảng đều đi qua bảo vệ note chưa lưu. Request cũ bị hủy và kiểm tra request ID trước khi cập nhật state.
+- Backend thêm `GET /api/tasks/summaries?from&to`: MongoDB aggregation theo `userId` và ngày, tối đa 366 ngày, không phụ thuộc phân trang và không trả note/nội dung.
+
+### Bằng chứng người dùng cung cấp
+
+- Người dùng đã thử các tính năng chặng 3A và xác nhận hoạt động ổn định.
+- Người dùng đã kiểm tra giao diện trên máy tính và điện thoại, xác nhận hiển thị tạm ổn và duyệt chặng 3A.
+
+### Codex tự kiểm tra
+
+- Backend `npm run typecheck`, `npm run lint`, `npm run build`: PASS.
+- Backend `npm test` trên database được xác nhận là `daytrail_test`: 19 PASS, 0 fail/cancelled/skipped/todo. Test mới xác nhận tổng hợp đủ 105 công việc vượt một trang, ngày trống, giới hạn khoảng và cách ly hai tài khoản.
+- Frontend `npm run typecheck`, `npm run lint`, `npm run build`: PASS; Vite 8.3.2 build thành công.
+- Chrome headless dùng backend riêng cổng 4014, frontend riêng cổng 5175 và `daytrail_test`: Năm/Tháng/Tuần/Ngày, trước/sau, Hôm nay, form tạo theo ngày chọn, mở chi tiết, công việc trùng giờ, ngày 29/02/2028 và tuần giao 2026–2027 đều PASS.
+- Bảo vệ note chưa lưu khi đổi chế độ, cập nhật hoàn thành/tổng quan, lỗi 503 và nút thử lại, reload khôi phục phiên và Hôm nay không bị hồi quy: PASS.
+- Responsive 1440, 390 và 360 px: không tràn ngang; Tuần desktop có 7 cột, mobile có 1 cột; nút thanh điều khiển đủ chiều cao thao tác. Console/runtime có 0 lỗi.
+- Harness xóa task/session/user theo đúng user test rồi dừng tiến trình; cổng 4014/5175/9224 còn 0 listener. Kiểm tra sau cleanup xác nhận còn 0 user có marker `@stage3a.test`; không drop database/collection và không tác động server 4000/5173 của người dùng.
+
+### Giới hạn
+
+- Chưa triển khai công việc lặp, ảnh, nhật ký ngày, Hành trình hoặc AI.
+- Chặng 3A đã được người dùng duyệt sau khi đối chiếu kiểm chứng kỹ thuật của Codex. Các thay đổi được phép commit và push trong nhiệm vụ chốt chặng này; chưa deploy và chưa bắt đầu chặng 3B.

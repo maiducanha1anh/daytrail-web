@@ -204,7 +204,29 @@ Gửi JSON `{}` cùng Origin hợp lệ. Thành công trả HTTP 204 và không 
 
 Phần trăm là số nguyên làm tròn gần nhất. Ngày không có công việc trả toàn bộ số đếm và phần trăm bằng 0.
 
-Frontend chặng 2B đã dùng các endpoint này cho Hôm nay và lịch tháng chọn ngày. Lịch lặp và ảnh vẫn chưa được triển khai; `repeat` chỉ là `none`.
+### `GET /api/tasks/summaries?from=2026-01-01&to=2026-12-31`
+
+Trả tổng quan theo từng ngày có công việc trong khoảng, tối đa 366 ngày. Backend dùng MongoDB aggregation (phép gom nhóm và tính toán ngay trong database), tính trên toàn bộ dữ liệu phù hợp chứ không phụ thuộc phân trang của `GET /api/tasks`.
+
+```json
+{
+  "from": "2026-01-01",
+  "to": "2026-12-31",
+  "summaries": [
+    {
+      "date": "2026-10-04",
+      "total": 2,
+      "completed": 1,
+      "incomplete": 1,
+      "completionPercentage": 50
+    }
+  ]
+}
+```
+
+Ngày không có công việc không xuất hiện trong `summaries`; frontend coi ngày thiếu là các số đếm 0, không phải hoàn thành 100%. Response không chứa tên, mô tả, note hoặc dữ liệu nhạy cảm. Thiếu/sai ngày, `to < from`, khoảng quá 366 ngày hoặc query ngoài `from`, `to` trả HTTP 400. Dữ liệu luôn giới hạn theo user của session.
+
+Frontend chặng 3A dùng tổng quan khoảng cho Năm/Tháng, danh sách khoảng có phân trang cho Tuần và API ngày hiện có cho Ngày. Lịch lặp và ảnh vẫn chưa được triển khai; `repeat` chỉ là `none`.
 
 ## Database tạm thời không sẵn sàng
 

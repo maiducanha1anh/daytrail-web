@@ -1,6 +1,6 @@
 # DayTrail Web
 
-Frontend React + TypeScript + Vite của DayTrail. Chặng 2B bổ sung danh sách, chi tiết, note và tổng quan công việc trong **Hôm nay**, cùng lịch tháng nhỏ để chọn ngày và lập kế hoạch cơ bản trong **Lịch**. Nhật ký ngày, ảnh, công việc lặp và **Hành trình** vẫn chưa được triển khai.
+Frontend React + TypeScript + Vite của DayTrail. **Hôm nay** có danh sách, chi tiết, note và tổng quan công việc. Chặng 3A mở rộng **Lịch** thành bốn chế độ Năm/Tháng/Tuần/Ngày, tối ưu riêng cho desktop và điện thoại. Nhật ký ngày, ảnh, công việc lặp và **Hành trình** vẫn chưa được triển khai.
 
 ## Chạy trên Windows
 
@@ -28,7 +28,7 @@ Mở `http://localhost:5173`. `VITE_API_BASE_URL` mặc định là `http://loca
 - Khi đăng nhập thành công: hiển thị tên người dùng, công việc hôm nay và ba mục điều hướng.
 - Khi tải lại trang: `/api/auth/me` khôi phục phiên mà không hiện thoáng nội dung sai trạng thái.
 - Khi đăng xuất: quay về form đăng nhập.
-- Trong **Lịch**: chọn ngày rồi tạo, sửa, chuyển ngày hoặc xóa công việc.
+- Trong **Lịch**: chuyển giữa Năm/Tháng/Tuần/Ngày; chọn ngày rồi tạo, sửa, chuyển ngày hoặc xóa công việc.
 - Trong **Hôm nay**: mở chi tiết để lưu note và đánh dấu hoàn thành; tổng quan cập nhật theo dữ liệu backend.
 
 Nếu frontend báo mất kết nối, mở `http://localhost:4000/api/health` và `http://localhost:4000/api/ready`. Header chỉ hiện **Dữ liệu sẵn sàng** khi cả API và MongoDB đều hoạt động; **Dữ liệu gián đoạn** nghĩa API còn chạy nhưng `/ready` đang 503. Nếu một endpoint không trả HTTP 200, xử lý backend theo `C:\daytrail-api\docs\OPERATIONS.md` trước.
@@ -47,6 +47,8 @@ Kết quả mong đợi: cả ba lệnh kết thúc với exit code 0 và Vite t
 
 Kết quả nghiệm thu chặng 2B: Codex đã chạy lại cả ba lệnh và kiểm tra Chrome headless với backend riêng cổng 4013, frontend riêng cổng 5174 và database `daytrail_test`. Luồng công việc, khôi phục phiên, xử lý HTTP 503 và responsive 390/1440 px đều PASS; dữ liệu test đã được dọn theo marker riêng.
 
+Kết quả kiểm chứng chặng 3A: Codex chạy `typecheck`, `lint`, `build` đều PASS. Chrome headless dùng backend/frontend riêng tại cổng 4014/5175 và `daytrail_test`: bốn chế độ Lịch, ngày nhuận, tuần giao năm, bảo vệ note chưa lưu, lỗi 503/thử lại, reload phiên và responsive 360/390/1440 px đều PASS; Console/runtime có 0 lỗi. Chặng đang chờ người dùng duyệt.
+
 ## Kiểm tra thủ công luồng tài khoản và công việc
 
 Trong trình duyệt tại `http://localhost:5173`:
@@ -60,6 +62,8 @@ Trong trình duyệt tại `http://localhost:5173`:
 7. Thu trình duyệt về khoảng 390 px và mở chi tiết. Trang không được tràn ngang; nội dung dialog cuộn được và các nút vẫn thao tác được.
 8. Đăng xuất rồi đăng nhập tài khoản khác. Công việc của tài khoản trước không được xuất hiện.
 9. Mở DevTools → Application: không được có token hoặc mật khẩu trong Local Storage/Session Storage. Cookie phiên là `HttpOnly` nên JavaScript không đọc được.
+10. Trong **Lịch**, thử Năm/Tháng/Tuần/Ngày; dùng nút trước/sau và **Hôm nay**. Trên điện thoại, lịch chọn ngày phải mở/thu được và Tuần phải chuyển thành danh sách dọc.
+11. Chọn tháng 2 của năm nhuận và một tuần giao năm; ngày phải đúng, trang không tràn ngang. Ngày không có việc không được hiển thị 100% hoàn thành.
 
 Nếu gặp lỗi, mở DevTools → Network, kiểm tra request `/api/auth/*` hoặc `/api/tasks*` và đối chiếu mã HTTP với [hợp đồng API](docs/API_CONTRACT.md). Không sao chép cookie hoặc thông tin đăng nhập khi gửi log hỗ trợ.
 

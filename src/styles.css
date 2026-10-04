@@ -173,6 +173,51 @@ footer { margin-top: auto; padding-top: 48px; color: #8b9991; font-size: 12px; }
 
 .calendar-toggle { display: none; width: 100%; border: 1px solid #d6e1d8; border-radius: 12px; padding: 11px 13px; color: #40584d; background: #fff; font-weight: 700; text-align: left; }
 .calendar-layout { display: grid; grid-template-columns: 286px minmax(0, 1fr); align-items: start; gap: 22px; }
+.calendar-layout-expanded { grid-template-columns: 264px minmax(0, 1fr); }
+.calendar-workspace { min-width: 0; display: grid; gap: 16px; }
+.calendar-controls { min-width: 0; display: grid; grid-template-columns: auto minmax(220px, 1fr) auto; align-items: center; gap: 14px; padding: 14px; border: 1px solid #dfe9e1; border-radius: 18px; background: #fff; box-shadow: 0 12px 34px rgba(23, 65, 45, .04); }
+.calendar-view-switch { display: flex; gap: 3px; padding: 3px; border-radius: 11px; background: #f0f4f0; }
+.calendar-view-switch button { min-height: 36px; border: 0; border-radius: 9px; padding: 7px 11px; color: #68776f; background: transparent; font-size: 12px; font-weight: 750; cursor: pointer; }
+.calendar-view-switch button.active { color: #234134; background: #fff; box-shadow: 0 2px 8px rgba(23, 65, 45, .09); }
+.calendar-period-nav { min-width: 0; display: grid; grid-template-columns: 38px minmax(0, 1fr) 38px; align-items: center; gap: 8px; }
+.calendar-period-nav h2 { min-width: 0; margin: 0; overflow: hidden; color: #243f34; font-size: 17px; text-align: center; text-overflow: ellipsis; text-transform: capitalize; white-space: nowrap; }
+.icon-button { width: 38px; height: 38px; border: 1px solid #d6e1d8; border-radius: 10px; color: #496154; background: #fff; font-size: 25px; line-height: 1; cursor: pointer; }
+.icon-button:hover { background: #f3f7f3; }
+.calendar-control-actions { display: flex; gap: 8px; }
+.calendar-view-stack { min-width: 0; display: grid; gap: 16px; }
+.calendar-main-view { min-width: 0; }
+.calendar-loading { min-height: 240px; }
+.year-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.year-month-card { min-width: 0; min-height: 132px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 17px; border: 1px solid #dfe9e1; border-radius: 15px; color: #29453a; background: #fbfdfb; text-align: left; cursor: pointer; }
+.year-month-card:hover { border-color: #a9c3ab; background: #f6faf5; }
+.year-month-card > span:first-child { color: #708078; font-size: 12px; font-weight: 800; text-transform: capitalize; }
+.year-month-card strong { margin-top: auto; font-size: 16px; }
+.year-month-card small { color: #738179; line-height: 1.4; }
+.month-progress { width: 100%; height: 6px; overflow: hidden; border-radius: 999px; background: #dfe9df; }
+.month-progress i { display: block; height: 100%; border-radius: inherit; background: #8bbd58; }
+.month-view-weekdays, .month-view-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.month-view-weekdays span { padding: 4px; color: #849188; font-size: 10px; font-weight: 800; text-align: center; }
+.month-view-grid button { min-width: 0; min-height: 96px; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; padding: 10px; border: 1px solid #e2eae3; border-radius: 12px; color: #314b40; background: #fff; text-align: left; cursor: pointer; }
+.month-view-grid button:hover { border-color: #abc1ad; background: #f8fbf7; }
+.month-view-grid button.outside { color: #aeb8b2; background: #fafbfa; }
+.month-view-grid button.today { border-color: #8bbd58; box-shadow: inset 0 0 0 1px #8bbd58; }
+.month-view-grid button.selected { border-color: #8fbd54; background: #eff8df; box-shadow: inset 0 0 0 1px #8fbd54; }
+.month-day-number { font-size: 14px; font-weight: 850; }
+.month-day-meta, .month-day-empty { margin-top: auto; color: #58704f; font-size: 10px; line-height: 1.35; }
+.month-day-empty { color: #a0aaa4; }
+.week-board { min-width: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 7px; }
+.week-day-column { min-width: 0; padding: 8px; border: 1px solid #e1e9e2; border-radius: 13px; background: #fafcfa; }
+.week-day-column.today { border-color: #a2c678; background: #f7fbeF; }
+.week-day-heading { width: 100%; display: flex; flex-direction: column; gap: 3px; padding: 6px 3px 10px; border: 0; color: #6b7a72; background: transparent; text-align: left; cursor: pointer; }
+.week-day-heading span { font-size: 10px; font-weight: 800; }
+.week-day-heading strong { color: #2d493d; font-size: 13px; }
+.week-task-stack { display: grid; gap: 7px; }
+.week-task { min-width: 0; display: grid; gap: 4px; padding: 9px; border: 1px solid #d7e4d7; border-left: 3px solid #e4a257; border-radius: 10px; color: #29443a; background: #fff; text-align: left; cursor: pointer; }
+.week-task.completed { border-left-color: #75a95d; background: #f4f8f3; }
+.week-task span, .week-task small { color: #76857d; font-size: 9px; }
+.week-task strong { overflow: hidden; font-size: 11px; line-height: 1.35; text-overflow: ellipsis; }
+.week-task.completed strong { color: #7a8780; text-decoration: line-through; }
+.week-empty { display: block; padding: 13px 3px; color: #a0aaa4; font-size: 10px; text-align: center; }
 .mini-calendar { position: sticky; top: 18px; padding: 18px; border: 1px solid #dfe9e1; border-radius: 19px; background: #fff; box-shadow: 0 12px 34px rgba(23, 65, 45, .04); }
 .month-toolbar { display: grid; grid-template-columns: 34px 1fr 34px; align-items: center; gap: 7px; margin-bottom: 14px; }
 .month-toolbar strong { text-align: center; text-transform: capitalize; font-size: 14px; }
@@ -252,6 +297,30 @@ footer { margin-top: auto; padding-top: 48px; color: #8b9991; font-size: 12px; }
   .calendar-layout { grid-template-columns: 1fr; gap: 14px; }
   .mini-calendar { position: static; display: none; }
   .mini-calendar.is-open { display: block; }
+  .calendar-workspace { gap: 13px; }
+  .calendar-controls { grid-template-columns: 1fr; gap: 11px; padding: 12px; }
+  .calendar-view-switch { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .calendar-view-switch button { min-height: 42px; padding: 8px 4px; }
+  .calendar-period-nav { grid-row: 2; }
+  .calendar-period-nav .icon-button { width: 42px; height: 42px; }
+  .calendar-control-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .calendar-control-actions button { min-height: 44px; }
+  .year-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .year-month-card { min-height: 124px; padding: 14px; }
+  .month-view-weekdays span { font-size: 10px; }
+  .month-view-grid { gap: 3px; }
+  .month-view-grid button { min-height: 58px; gap: 3px; padding: 6px 4px; border-radius: 9px; }
+  .month-day-number { font-size: 12px; }
+  .month-day-meta, .month-day-empty { width: 100%; overflow: hidden; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+  .calendar-selected-day .section-heading { align-items: flex-start; flex-direction: column; }
+  .week-board { grid-template-columns: 1fr; gap: 10px; }
+  .week-day-column { padding: 11px; }
+  .week-day-heading { min-height: 44px; flex-direction: row; align-items: center; justify-content: space-between; }
+  .week-day-heading span, .week-day-heading strong { font-size: 13px; }
+  .week-task { min-height: 64px; grid-template-columns: 82px minmax(0, 1fr); align-items: center; gap: 3px 10px; padding: 11px; }
+  .week-task span { grid-row: 1 / span 2; font-size: 10px; }
+  .week-task strong { font-size: 13px; }
+  .week-task small { font-size: 10px; }
   .calendar-day { min-height: 360px; }
   .task-main { grid-template-columns: 52px minmax(0, 1fr); gap: 11px; padding: 14px; }
   .task-main > .task-status { grid-column: 2; justify-self: start; }
@@ -280,4 +349,9 @@ footer { margin-top: auto; padding-top: 48px; color: #8b9991; font-size: 12px; }
   .task-facts { grid-template-columns: 1fr; }
   .summary-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
   .summary-grid > div { padding: 14px; }
+  .year-grid { grid-template-columns: 1fr; }
+  .year-month-card { min-height: 110px; }
+  .calendar-period-nav h2 { font-size: 15px; }
+  .month-view-grid button { min-height: 52px; }
+  .month-day-empty { display: none; }
 }

@@ -1,5 +1,16 @@
 import { apiRequest } from '../../api'
-import type { Task, TaskListResponse, TaskPlanInput, TaskSummary } from './types'
+import type { Task, TaskListResponse, TaskPlanInput, TaskSummary, TaskSummaryRangeResponse } from './types'
+
+async function listAll(from: string, to: string, signal?: AbortSignal) {
+  const query = `from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+  const firstPage = await apiRequest<TaskListResponse>(`/api/tasks?${query}&page=1&limit=100`, { signal })
+  const tasks = [...firstPage.tasks]
+  for (let page = 2; page <= firstPage.pagination.pages; page += 1) {
+    const result = await apiRequest<TaskListResponse>(`/api/tasks?${query}&page=${page}&limit=100`, { signal })
+    tasks.push(...result.tasks)
+  }
+  return tasks
+}
 
 function jsonInit(method: 'POST' | 'PATCH' | 'DELETE', body: unknown, signal?: AbortSignal): RequestInit {
   return {
@@ -12,16 +23,16 @@ function jsonInit(method: 'POST' | 'PATCH' | 'DELETE', body: unknown, signal?: A
 
 export const taskApi = {
   async listAllForDate(date: string, signal?: AbortSignal) {
-    const firstPage = await apiRequest<TaskListResponse>(`/api/tasks?date=${encodeURIComponent(date)}&page=1&limit=100`, { signal })
-    const tasks = [...firstPage.tasks]
-    for (let page = 2; page <= firstPage.pagination.pages; page += 1) {
-      const result = await apiRequest<TaskListResponse>(`/api/tasks?date=${encodeURIComponent(date)}&page=${page}&limit=100`, { signal })
-      tasks.push(...result.tasks)
-    }
-    return tasks
+    return listAll(date, date, signal)
+  },
+  listAllForRange(from: string, to: string, signal?: AbortSignal) {
+    return listAll(from, to, signal)
   },
   summary(date: string, signal?: AbortSignal) {
     return apiRequest<TaskSummary>(`/api/tasks/summary?date=${encodeURIComponent(date)}`, { signal })
+  },
+  summaries(from: string, to: string, signal?: AbortSignal) {
+    return apiRequest<TaskSummaryRangeResponse>(`/api/tasks/summaries?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, { signal })
   },
   create(date: string, input: TaskPlanInput, signal?: AbortSignal) {
     return apiRequest<{ task: Task }>('/api/tasks', jsonInit('POST', { date, ...input }, signal))
