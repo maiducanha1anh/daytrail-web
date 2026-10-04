@@ -21,7 +21,7 @@ Lịch là nơi tạo công việc cho ngày đang chọn. Form gồm tên, gi�
 
 Ngày không có công việc không được tính là 0% hoàn thành.
 
-Lặp lại gồm: không lặp, hằng ngày, chọn ngày trong tuần và hằng tuần. Mỗi lần xuất hiện có trạng thái, ghi chú và ảnh riêng. Sửa/xóa có phạm vi “lần này” hoặc “lần này và các lần sau”; không sửa lịch sử, không tạo vô hạn bản ghi tương lai và không tự chuyển việc chưa xong sang hôm sau. Chuyển ngày phải giữ ghi chú và ảnh.
+Lặp lại V1 gồm: không lặp, hằng ngày, hằng tuần chọn nhiều thứ và hằng tháng cùng ngày trong tháng. Chuỗi bắt buộc ngày kết thúc, tối đa 366 ngày; tháng thiếu ngày tương ứng thì bỏ qua. Mỗi lần xuất hiện có trạng thái, ghi chú và ảnh riêng. Chuyển ngày giữ dữ liệu và liên kết ngày dự kiến ban đầu. Dừng chuỗi từ một ngày sẽ giữ lịch sử đã hoàn thành/có note và xóa phần tương lai chưa có dữ liệu. Chưa hỗ trợ sửa hàng loạt quy tắc chuỗi.
 
 ## Hành trình
 
@@ -45,6 +45,7 @@ Nhật ký và ảnh mặc định là riêng tư. Ngày cá nhân dùng múi gi
 - Backend công việc một lần theo ngày của chặng 2A đã được triển khai, kiểm chứng và nghiệm thu.
 - Giao diện công việc trong Hôm nay và lập kế hoạch cơ bản trong Lịch của chặng 2B đã được triển khai, kiểm chứng và nghiệm thu.
 - Bốn chế độ Lịch Năm/Tháng/Tuần/Ngày của chặng 3A đã được triển khai, kiểm chứng và người dùng duyệt.
-- Lịch lặp, ảnh, nhật ký ngày, Hành trình đầy đủ, quên mật khẩu, xác minh email, đăng nhập Google, chỉnh hồ sơ và AI chưa được triển khai.
+- Backend công việc lặp hữu hạn của chặng 3B.1 đã được triển khai, Codex kiểm chứng và người dùng duyệt. Giao diện lặp của chặng 3B.2 chưa triển khai nên toàn bộ chặng 3B chưa hoàn tất.
+- Ảnh, nhật ký ngày, Hành trình đầy đủ, quên mật khẩu, xác minh email, đăng nhập Google, chỉnh hồ sơ và AI chưa được triển khai.
 
 Chi tiết bằng chứng nằm trong [PROGRESS.md](PROGRESS.md); thứ tự triển khai nằm trong [ROADMAP.md](ROADMAP.md).

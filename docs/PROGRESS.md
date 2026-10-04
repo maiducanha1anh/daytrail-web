@@ -257,3 +257,32 @@ Kết luận: chặng 2B đã được người dùng duyệt sau khi thử lạ
 
 - Chưa triển khai công việc lặp, ảnh, nhật ký ngày, Hành trình hoặc AI.
 - Chặng 3A đã được người dùng duyệt sau khi đối chiếu kiểm chứng kỹ thuật của Codex. Các thay đổi được phép commit và push trong nhiệm vụ chốt chặng này; chưa deploy và chưa bắt đầu chặng 3B.
+
+## Chặng 3B.1 — Backend công việc lặp
+
+### Đã triển khai
+
+- Backend lưu cấu hình chuỗi lặp hữu hạn trong `TaskSeries` và sinh trước từng công việc cụ thể trong khoảng tối đa 366 ngày. Công việc một lần hiện có vẫn tương thích.
+- Hỗ trợ `daily`, `weekly` với một hoặc nhiều thứ, và `monthly` theo đúng ngày của ngày bắt đầu. Ngày kết thúc được tính; tháng không có ngày tương ứng thì bỏ qua, không đẩy sang tháng kế tiếp.
+- Mỗi lần thực hiện có ID, note, trạng thái hoàn thành và `completedAt` riêng; có `seriesId` và `originalDate` để giữ nguồn lịch kể cả khi chuyển ngày.
+- `POST /api/tasks/series` tạo chuỗi và các lần thực hiện trong một transaction MongoDB. Unique index theo chủ sở hữu, chuỗi và ngày gốc ngăn tạo trùng.
+- `POST /api/tasks/series/:seriesId/stop` dừng từ ngày gốc được chỉ định: xóa lần chưa hoàn thành và chưa có note, giữ lịch sử có note hoặc đã hoàn thành. Gọi lại không tái sinh dữ liệu đã loại bỏ.
+- Danh sách và tổng quan tiếp tục tính trên các công việc thực tế còn tồn tại, không đếm thêm bản ghi cấu hình chuỗi.
+- Frontend mới cập nhật tài liệu; giao diện tạo và dừng công việc lặp chưa được triển khai.
+
+### Codex tự kiểm tra
+
+- Backend `npm run typecheck`, `npm run lint`, `npm run build`: PASS.
+- Toàn bộ `npm test` chạy trên database được xác nhận là `daytrail_test`: 29 PASS, 0 fail/cancelled/skipped/todo; gồm 8 test auth, 10 test công việc lặp, 10 test công việc hiện có và 1 test database gián đoạn.
+- Kiểm thử bao phủ lặp ngày/tuần/tháng, ngày 29/30/31, năm nhuận, giao tháng/năm, ngày kết thúc, giới hạn 366 ngày, cách ly hai tài khoản và tính độc lập của từng lần thực hiện.
+- Dừng chuỗi giữ lần có note/đã hoàn thành và xử lý theo `originalDate` với lần đã chuyển ngày: PASS. Danh sách/tổng quan không đếm đôi và truy vấn lại không sinh trùng: PASS.
+- Kiểm thử chủ động làm bước chèn công việc thất bại xác nhận transaction rollback cả `TaskSeries` lẫn các lần thực hiện; không để lại dữ liệu dở.
+- Cleanup chỉ xóa dữ liệu có marker của lần chạy sau khi xác nhận database là `daytrail_test`; không drop database hoặc collection.
+
+### Giới hạn và trạng thái
+
+- Chưa hỗ trợ sửa hàng loạt quy tắc chuỗi; chỉ sửa/xóa/chuyển ngày/note/hoàn thành từng lần và dừng chuỗi từ một ngày gốc.
+- Chưa làm giao diện lặp, ảnh, nhật ký ngày, Hành trình hoặc AI.
+- Chặng 3B.1 đã được người dùng duyệt về backend dựa trên kết quả kiểm chứng của Codex: `typecheck`, `lint`, `build` PASS và 29/29 test PASS.
+- Người dùng chưa thử giao diện công việc lặp vì giao diện này chưa được triển khai. Chặng 3B.2 chưa bắt đầu nên toàn bộ chặng 3B chưa hoàn tất.
+- Các thay đổi 3B.1 được phép commit và push trong nhiệm vụ chốt chặng; chưa deploy.

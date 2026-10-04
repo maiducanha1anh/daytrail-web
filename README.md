@@ -1,6 +1,6 @@
 # DayTrail Web
 
-Frontend React + TypeScript + Vite của DayTrail. **Hôm nay** có danh sách, chi tiết, note và tổng quan công việc. Chặng 3A mở rộng **Lịch** thành bốn chế độ Năm/Tháng/Tuần/Ngày, tối ưu riêng cho desktop và điện thoại. Nhật ký ngày, ảnh, công việc lặp và **Hành trình** vẫn chưa được triển khai.
+Frontend React + TypeScript + Vite của DayTrail. **Hôm nay** có danh sách, chi tiết, note và tổng quan công việc. **Lịch** có bốn chế độ Năm/Tháng/Tuần/Ngày. Backend chặng 3B.1 đã hỗ trợ chuỗi lặp hữu hạn, nhưng giao diện tạo/dừng chuỗi chưa được triển khai; nhật ký ngày, ảnh và **Hành trình** cũng chưa có.
 
 ## Chạy trên Windows
 

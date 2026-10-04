@@ -26,7 +26,8 @@ Triển khai dữ liệu công việc, quyền sở hữu, màn hình Hôm nay v
 Mở rộng từ lịch tháng nhỏ của chặng 2B sang chế độ năm/tháng/tuần/ngày đầy đủ và quy tắc lặp. Điều kiện nghiệm thu: các phạm vi sửa/xóa và lịch sử dữ liệu được kiểm thử.
 
 - 3A — Các chế độ xem Năm/Tháng/Tuần/Ngày, responsive và tổng quan theo khoảng: đã triển khai, kiểm chứng và được người dùng duyệt.
-- 3B — Công việc lặp và phạm vi sửa/xóa: chưa triển khai.
+- 3B.1 — Backend chuỗi lặp hữu hạn, thao tác một lần và dừng chuỗi: đã triển khai, Codex kiểm chứng và được người dùng duyệt.
+- 3B.2 — Giao diện tạo/dừng chuỗi và hiển thị nguồn lặp: chưa triển khai.
 
 ## Chặng 4 — Nhật ký và ảnh
 

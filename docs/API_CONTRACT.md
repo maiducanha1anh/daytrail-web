@@ -82,7 +82,7 @@ Gửi JSON, có thể là `{}`. API xóa session hiện tại nếu có, xóa co
 
 Hướng dẫn chạy thử bằng PowerShell nằm trong `C:\daytrail-api\README.md`.
 
-## Công việc theo ngày — chặng 2A
+## Công việc theo ngày và chuỗi lặp
 
 Mọi endpoint dưới `/api/tasks` yêu cầu cookie phiên hợp lệ. Thiếu hoặc hết phiên trả HTTP 401. ID sai định dạng trả HTTP 400; công việc không tồn tại hoặc thuộc user khác trả HTTP 404.
 
@@ -97,10 +97,10 @@ Các thao tác `POST`, `PATCH`, `DELETE` yêu cầu `Content-Type: application/j
 - `group`: chuỗi tùy chọn tối đa 80 ký tự.
 - `description`: chuỗi tùy chọn tối đa 2.000 ký tự.
 - `note`: chuỗi tùy chọn tối đa 5.000 ký tự, tách biệt với mô tả kế hoạch.
-- `repeat`: chặng này chỉ nhận `none`; giá trị khác trả HTTP 400.
+- `repeat`: công việc một lần là `none`; lần được sinh từ chuỗi là `daily`, `weekly` hoặc `monthly`.
 - `completed`: mặc định `false`. `completedAt` là timestamp UTC khi hoàn thành và là `null` khi chưa hoàn thành.
 - Trường tùy chọn `group`, `description`, `note` nhận chuỗi hoặc `null`; chuỗi rỗng sau khi trim được lưu thành `null`.
-- Client không được gửi hoặc sửa `userId`, `completedAt`, `createdAt`, `updatedAt`. Ngày và trạng thái có endpoint riêng.
+- Client không được gửi hoặc sửa `userId`, `seriesId`, `originalDate`, `completedAt`, `createdAt`, `updatedAt`. Ngày và trạng thái có endpoint riêng.
 
 Task trả về có dạng:
 
@@ -116,6 +116,7 @@ Task trả về có dạng:
   "description": "Mô tả kế hoạch",
   "note": null,
   "repeat": "none",
+  "recurrence": null,
   "completed": false,
   "completedAt": null,
   "createdAt": "<timestamp-UTC>",
@@ -124,6 +125,18 @@ Task trả về có dạng:
 ```
 
 Response không chứa `userId`.
+
+Với lần được sinh từ chuỗi, `recurrence` có dạng:
+
+```json
+{
+  "seriesId": "<object-id>",
+  "originalDate": "2026-10-05",
+  "frequency": "weekly"
+}
+```
+
+`originalDate` là ngày dự kiến ban đầu và không đổi khi chuyển công việc sang ngày khác.
 
 ### `POST /api/tasks`
 
@@ -143,6 +156,74 @@ Response không chứa `userId`.
 
 - HTTP 201: `{ "task": { ... } }`.
 - HTTP 400: body, ngày, giờ, enum hoặc giới hạn văn bản không hợp lệ; có trường không được hỗ trợ.
+
+Endpoint này chỉ tạo công việc một lần và chỉ chấp nhận `repeat="none"`.
+
+### `POST /api/tasks/series`
+
+Tạo cấu hình chuỗi và tất cả lần thực hiện trong khoảng hữu hạn:
+
+```json
+{
+  "date": "2026-10-05",
+  "name": "Tập thể dục",
+  "startTime": "06:30",
+  "endTime": "07:00",
+  "priority": "normal",
+  "group": "Sức khỏe",
+  "description": null,
+  "repeat": {
+    "frequency": "weekly",
+    "weekdays": [1, 3, 5],
+    "endDate": "2026-12-31"
+  }
+}
+```
+
+- `frequency`: `daily`, `weekly` hoặc `monthly`.
+- `endDate` bắt buộc, được tính trong khoảng và phải cách `date` tối đa 365 ngày — tổng khoảng tối đa 366 ngày.
+- `weekdays` chỉ dùng và bắt buộc với `weekly`; là mảng không trùng từ 1 (thứ Hai) đến 7 (Chủ nhật).
+- `monthly` dùng đúng ngày trong tháng của `date`. Tháng không có ngày đó bị bỏ qua; ví dụ chuỗi ngày 31 bỏ tháng Hai nhưng vẫn có ngày 31 tháng Ba.
+- Client không được gửi note, completed, completedAt, chủ sở hữu hoặc ID liên kết cho các lần sinh.
+- Nếu quy tắc không tạo được lần nào trong khoảng, API trả HTTP 400.
+
+HTTP 201 trả gọn, không trả toàn bộ công việc:
+
+```json
+{
+  "series": {
+    "id": "<object-id>",
+    "startDate": "2026-10-05",
+    "endDate": "2026-12-31",
+    "frequency": "weekly",
+    "weekdays": [1, 3, 5],
+    "stoppedFromDate": null
+  },
+  "createdCount": 38
+}
+```
+
+Backend tạo `TaskSeries` và các `Task` trong một MongoDB transaction; lỗi giữa chừng rollback toàn bộ. Unique index theo user/chuỗi/ngày dự kiến ngăn tạo trùng. Đọc lịch, reload hoặc khởi động backend không sinh thêm lần thực hiện.
+
+### `POST /api/tasks/series/:seriesId/stop`
+
+```json
+{ "fromDate": "2026-12-01" }
+```
+
+`fromDate` phải nằm trong khoảng gốc của chuỗi. Từ ngày này theo `originalDate`, backend xóa lần chưa hoàn thành và chưa có note; giữ lần đã hoàn thành hoặc có note. Lần đã chuyển ngày vẫn được xét theo ngày dự kiến ban đầu.
+
+HTTP 200:
+
+```json
+{
+  "series": { "id": "<object-id>", "stoppedFromDate": "2026-12-01" },
+  "removedCount": 8,
+  "keptCount": 2
+}
+```
+
+Gọi lại không tái sinh lần đã xóa. Chuỗi không tồn tại hoặc thuộc tài khoản khác trả HTTP 404. Chặng này chưa hỗ trợ sửa hàng loạt quy tắc hoặc toàn bộ chuỗi.
 
 ### `GET /api/tasks`
 
@@ -166,7 +247,7 @@ HTTP 200: `{ "task": { ... } }`.
 
 ### `PATCH /api/tasks/:id`
 
-Sửa một hoặc nhiều trường: `name`, `startTime`, `endTime`, `priority`, `group`, `description`, `note`. Body rỗng hoặc trường ngoài danh sách trả HTTP 400. Nếu sửa một đầu thời gian, cặp giờ sau cập nhật vẫn phải hợp lệ.
+Sửa một hoặc nhiều trường: `name`, `startTime`, `endTime`, `priority`, `group`, `description`, `note`. Body rỗng hoặc trường ngoài danh sách trả HTTP 400. Nếu sửa một đầu thời gian, cặp giờ sau cập nhật vẫn phải hợp lệ. Với công việc lặp, thao tác chỉ ảnh hưởng đúng lần đó.
 
 HTTP 200: `{ "task": { ... } }`.
 
@@ -176,7 +257,7 @@ HTTP 200: `{ "task": { ... } }`.
 { "date": "2026-10-05" }
 ```
 
-Chuyển ngày nhưng giữ nguyên note, mô tả và trạng thái hoàn thành. HTTP 200: `{ "task": { ... } }`.
+Chuyển ngày nhưng giữ nguyên note, mô tả, trạng thái hoàn thành và liên kết chuỗi. `originalDate` không đổi. HTTP 200: `{ "task": { ... } }`.
 
 ### `PATCH /api/tasks/:id/completion`
 
@@ -188,7 +269,7 @@ Phải gửi boolean rõ ràng, không dùng toggle. Chuyển sang `true` đặt
 
 ### `DELETE /api/tasks/:id`
 
-Gửi JSON `{}` cùng Origin hợp lệ. Thành công trả HTTP 204 và không có body.
+Gửi JSON `{}` cùng Origin hợp lệ. Thành công trả HTTP 204 và không có body. Với công việc lặp, chỉ lần đó bị xóa và không tự sinh lại.
 
 ### `GET /api/tasks/summary?date=2026-10-04`
 
@@ -226,7 +307,7 @@ Trả tổng quan theo từng ngày có công việc trong khoảng, tối đa 3
 
 Ngày không có công việc không xuất hiện trong `summaries`; frontend coi ngày thiếu là các số đếm 0, không phải hoàn thành 100%. Response không chứa tên, mô tả, note hoặc dữ liệu nhạy cảm. Thiếu/sai ngày, `to < from`, khoảng quá 366 ngày hoặc query ngoài `from`, `to` trả HTTP 400. Dữ liệu luôn giới hạn theo user của session.
 
-Frontend chặng 3A dùng tổng quan khoảng cho Năm/Tháng, danh sách khoảng có phân trang cho Tuần và API ngày hiện có cho Ngày. Lịch lặp và ảnh vẫn chưa được triển khai; `repeat` chỉ là `none`.
+Danh sách và tổng quan tính trên các `Task` thực tế còn tồn tại, gồm công việc một lần và từng lần lặp; không đếm thêm document `TaskSeries`. Công việc đã chuyển ngày chỉ được tính ở ngày đích. Frontend chặng 3A chưa có điều khiển tạo/dừng chuỗi; ảnh cũng chưa triển khai.
 
 ## Database tạm thời không sẵn sàng
 
