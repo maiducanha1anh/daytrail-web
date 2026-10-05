@@ -8,7 +8,7 @@ Màn hình gồm danh sách công việc, nhật ký ngày và tổng quan ngày
 
 Note công việc là nội dung riêng với mô tả kế hoạch và được chỉnh từ chi tiết công việc, kể cả trước khi hoàn thành. Note và ảnh của công việc cũ được xem lại từ chính chi tiết công việc ở ngày đó. Không tạo công việc trực tiếp tại màn hình Hôm nay.
 
-Nhật ký ngày độc lập với công việc. Ngày không có công việc vẫn viết được nhật ký và thêm nhiều ảnh; mỗi ảnh nhật ký có thể có chú thích. Backend nhật ký văn bản của chặng 4A đã có; giao diện và ảnh chưa được triển khai.
+Nhật ký ngày độc lập với công việc. Ngày không có công việc vẫn viết được nhật ký. Giao diện văn bản dùng chung giữa Hôm nay và chế độ Ngày của Lịch, bảo vệ bản nháp chưa lưu và không tự ghi đè khi hai tab xung đột. Nhiều ảnh cùng chú thích từng ảnh thuộc chặng 4C, chưa triển khai.
 
 ## Lịch
 
@@ -47,6 +47,6 @@ Nhật ký và ảnh mặc định là riêng tư. Ngày cá nhân dùng múi gi
 - Bốn chế độ Lịch Năm/Tháng/Tuần/Ngày của chặng 3A đã được triển khai, kiểm chứng và người dùng duyệt.
 - Backend công việc lặp hữu hạn của chặng 3B.1 và giao diện tạo, nhận biết, thao tác một lần, dừng chuỗi của chặng 3B.2 đã được kiểm chứng và người dùng duyệt. Chặng 3B hoàn tất trong phạm vi V1 đã thống nhất; chưa hỗ trợ sửa hàng loạt quy tắc chuỗi.
 - Backend nhật ký văn bản theo ngày của chặng 4A đã được Codex kiểm chứng và người dùng duyệt về backend.
-- Giao diện nhật ký, ảnh, Hành trình đầy đủ, quên mật khẩu, xác minh email, đăng nhập Google, chỉnh hồ sơ và AI chưa được triển khai.
+- Giao diện nhật ký văn bản chặng 4B đã được triển khai và đang chờ người dùng kiểm tra/duyệt. Ảnh, Hành trình đầy đủ, quên mật khẩu, xác minh email, đăng nhập Google, chỉnh hồ sơ và AI chưa được triển khai.
 
 Chi tiết bằng chứng nằm trong [PROGRESS.md](PROGRESS.md); thứ tự triển khai nằm trong [ROADMAP.md](ROADMAP.md).

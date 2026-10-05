@@ -342,6 +342,8 @@ Mọi endpoint dưới `/api/journals` yêu cầu cookie phiên hợp lệ và c
 
 `version` là số tăng sau mỗi lần cập nhật, dùng để tránh một tab ghi đè dữ liệu mới của tab khác. Tạo mới phải gửi `version: null`; cập nhật và xóa phải gửi version mới nhất đã đọc. Xung đột trả HTTP 409, client phải đọc lại dữ liệu rồi để người dùng quyết định.
 
+Frontend chặng 4B giữ nguyên bản nháp khi nhận HTTP 409. Thao tác **Đọc bản mới nhất** chỉ tải dữ liệu để đối chiếu và cập nhật version nền, không tự thay nội dung đang gõ. Người dùng có thể xác nhận bỏ bản nháp để dùng bản mới nhất, hoặc giữ/chỉnh/ghép bản nháp rồi chủ động lưu bằng version mới nhất. Nếu bản ghi đã bị tab khác xóa, cập nhật bằng version cũ nhận HTTP 404; frontend xử lý như xung đột và chỉ tạo lại khi người dùng chủ động lưu với `version: null`.
+
 ### `GET /api/journals/:date`
 
 Ngày có nhật ký trả HTTP 200:

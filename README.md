@@ -1,6 +1,6 @@
 # DayTrail Web
 
-Frontend React + TypeScript + Vite của DayTrail. **Hôm nay** có danh sách, chi tiết, note và tổng quan công việc. **Lịch** có bốn chế độ Năm/Tháng/Tuần/Ngày cùng giao diện tạo, nhận biết và dừng chuỗi lặp hữu hạn. Backend nhật ký văn bản đã có từ chặng 4A; giao diện nhật ký, ảnh và **Hành trình** chưa được triển khai.
+Frontend React + TypeScript + Vite của DayTrail. **Hôm nay** có công việc, nhật ký văn bản và tổng quan ngày. **Lịch** có bốn chế độ Năm/Tháng/Tuần/Ngày, giao diện công việc lặp và nhật ký ở chế độ Ngày. Ảnh và **Hành trình** chưa được triển khai.
 
 ## Chạy trên Windows
 
@@ -30,6 +30,7 @@ Mở `http://localhost:5173`. `VITE_API_BASE_URL` mặc định là `http://loca
 - Khi đăng xuất: quay về form đăng nhập.
 - Trong **Lịch**: chuyển giữa Năm/Tháng/Tuần/Ngày; tạo công việc một lần hoặc lặp ngày/tuần/tháng; sửa, chuyển ngày và xóa đúng một lần thực hiện.
 - Trong **Hôm nay**: mở chi tiết để lưu note và đánh dấu hoàn thành; tổng quan cập nhật theo dữ liệu backend.
+- Trong **Hôm nay** hoặc chế độ **Ngày** của Lịch: viết, sửa và xóa nhật ký theo ngày. DayTrail không tự lưu; khi đổi màn hình với bản nháp chưa lưu, ứng dụng hỏi lưu, bỏ thay đổi hoặc tiếp tục chỉnh.
 
 Nếu frontend báo mất kết nối, mở `http://localhost:4000/api/health` và `http://localhost:4000/api/ready`. Header chỉ hiện **Dữ liệu sẵn sàng** khi cả API và MongoDB đều hoạt động; **Dữ liệu gián đoạn** nghĩa API còn chạy nhưng `/ready` đang 503. Nếu một endpoint không trả HTTP 200, xử lý backend theo `C:\daytrail-api\docs\OPERATIONS.md` trước.
 
@@ -51,6 +52,8 @@ Kết quả kiểm chứng chặng 3A: Codex chạy `typecheck`, `lint`, `build`
 
 Kết quả kiểm chứng chặng 3B.2: frontend `typecheck`, `lint`, `build` PASS. Chrome headless dùng backend/frontend riêng tại 4015/5176 và `daytrail_test`: tạo một lần, lặp ngày/tuần/tháng, ngày 31, thao tác một lần, dừng từ lần đã chuyển ngày, bảo vệ note khi HTTP 503, reload không sinh trùng và responsive 360/390/1440 px đều PASS; runtime exception có 0. Dữ liệu và tiến trình test đã được dọn.
 
+Kết quả kỹ thuật chặng 4B: frontend `typecheck`, `lint`, `build` PASS. Codex đã kiểm tra Chrome headless với backend riêng cổng `4017`, frontend riêng cổng `5177` và database thật `daytrail_test`: tạo/đọc/sửa/reload/xóa, đồng bộ Hôm nay–Lịch, bảo vệ ba lựa chọn bản nháp, xung đột hai tab, 401, cách ly tài khoản, HTTP 503/lỗi mạng, hồi quy công việc/công việc lặp và responsive 360/390/1440 px đều PASS; runtime exception có 0. Backend người dùng tại `4000` không bị dừng. Dữ liệu test mang marker riêng đã được dọn. Chặng vẫn chờ người dùng thử và duyệt, chưa commit/push.
+
 ## Kiểm tra thủ công luồng tài khoản và công việc
 
 Trong trình duyệt tại `http://localhost:5173`:
@@ -68,6 +71,9 @@ Trong trình duyệt tại `http://localhost:5173`:
 11. Chọn tháng 2 của năm nhuận và một tuần giao năm; ngày phải đúng, trang không tràn ngang. Ngày không có việc không được hiển thị 100% hoàn thành.
 12. Tạo chuỗi ngày, tuần nhiều thứ và tháng. Kiểm tra ngày kết thúc bắt buộc; chuỗi tháng ngày 31 phải bỏ qua tháng không có ngày 31.
 13. Mở một lần lặp để sửa/chuyển/xóa riêng lần đó. Mở chi tiết, kiểm tra thông tin chuỗi rồi chọn **Dừng lặp**; kết quả phải báo số lần loại bỏ và giữ lại.
+14. Viết nhật ký trong **Hôm nay**, lưu rồi mở đúng ngày đó ở **Lịch → Ngày**. Sửa và tải lại trang; nội dung, xuống dòng và khoảng trắng phải còn nguyên.
+15. Sửa nhật ký nhưng chưa lưu rồi đổi ngày/tab hoặc đăng xuất. Kiểm tra đủ ba lựa chọn: **Lưu và tiếp tục**, **Bỏ thay đổi**, **Tiếp tục chỉnh**.
+16. Mở cùng ngày ở hai tab, lưu thay đổi ở tab thứ nhất rồi lưu bản cũ ở tab thứ hai. Tab thứ hai phải giữ bản nháp, báo xung đột và cho đối chiếu bản mới nhất; không tự ghi đè.
 
 Nếu gặp lỗi, mở DevTools → Network, kiểm tra request `/api/auth/*` hoặc `/api/tasks*` và đối chiếu mã HTTP với [hợp đồng API](docs/API_CONTRACT.md). Không sao chép cookie hoặc thông tin đăng nhập khi gửi log hỗ trợ.
 

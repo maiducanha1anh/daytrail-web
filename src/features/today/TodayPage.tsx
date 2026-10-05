@@ -1,5 +1,6 @@
+import type { GuardRegistrar } from '../../navigation'
+import { JournalEditor } from '../journals/JournalEditor'
 import { TaskCollection } from '../tasks/TaskCollection'
-import type { GuardRegistrar } from '../tasks/TaskDetailDialog'
 import { formatLocalDate, todayKey } from '../tasks/date'
 import { useTaskDay } from '../tasks/useTaskDay'
 
@@ -30,10 +31,7 @@ export function TodayPage({ onOpenCalendar, onUnauthorized, registerNavigationGu
       />
     </section>
 
-    <section className="content-card journal-placeholder" aria-labelledby="journal-title">
-      <div className="section-heading"><div><h2 id="journal-title">Nhật ký ngày</h2><p>Nhật ký độc lập với công việc sẽ được triển khai ở chặng sau.</p></div><span className="future-badge">Chưa triển khai</span></div>
-      <p>Bạn chưa thể nhập hoặc lưu nhật ký tại đây. DayTrail không tạo dữ liệu giả cho phần này.</p>
-    </section>
+    <JournalEditor key={date} date={date} onUnauthorized={onUnauthorized} registerNavigationGuard={registerNavigationGuard} />
 
     <section className="content-card" aria-labelledby="summary-title">
       <div className="section-heading"><div><h2 id="summary-title">Tổng quan ngày</h2><p>Cập nhật từ dữ liệu công việc đã lưu trên backend.</p></div></div>

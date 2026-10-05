@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError } from '../../api'
+import type { GuardRegistrar } from '../../navigation'
 import { taskApi } from './api'
 import { formatLocalDate, parseLocalDate, todayKey } from './date'
 import { DialogFrame } from './DialogFrame'
 import { taskErrorMessage } from './useTaskDay'
 import type { Task, TaskSeries } from './types'
-
-export type NavigationGuard = (next: () => void) => void
-export type GuardRegistrar = (guard?: NavigationGuard) => void
 
 const priorityLabel = { low: 'Thấp', normal: 'Bình thường', high: 'Cao' } as const
 const frequencyLabel = { daily: 'Hằng ngày', weekly: 'Hằng tuần', monthly: 'Hằng tháng' } as const
@@ -86,11 +84,7 @@ export function TaskDetailDialog({ onClose, onSeriesChanged, onTaskChanged, onUn
     else action()
   }, [dirty])
 
-  useEffect(() => {
-    if (!registerNavigationGuard) return
-    registerNavigationGuard(requestAction)
-    return () => registerNavigationGuard(undefined)
-  }, [registerNavigationGuard, requestAction])
+  useEffect(() => registerNavigationGuard?.(requestAction), [registerNavigationGuard, requestAction])
 
   function accept(nextTask: Task) {
     setCurrentTask(nextTask)

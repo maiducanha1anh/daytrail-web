@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { AuthPanel } from './AuthPanel'
 import { ApiError, dayTrailApi, type DayTrailUser } from './api'
 import { CalendarPage } from './features/calendar/CalendarPage'
-import type { GuardRegistrar, NavigationGuard } from './features/tasks/TaskDetailDialog'
+import type { GuardRegistrar, NavigationGuard } from './navigation'
 import { TodayPage } from './features/today/TodayPage'
 
 type HealthState = 'checking' | 'ready' | 'degraded' | 'offline'
@@ -110,16 +110,23 @@ function AuthenticatedView({ user, onLogout, onSessionExpired, logoutError, logg
   loggingOut: boolean
 }) {
   const [section, setSection] = useState<Section>('Hôm nay')
-  const navigationGuardRef = useRef<NavigationGuard | undefined>(undefined)
+  const navigationGuardsRef = useRef(new Set<NavigationGuard>())
 
   const registerNavigationGuard: GuardRegistrar = useCallback((guard) => {
-    navigationGuardRef.current = guard
+    navigationGuardsRef.current.add(guard)
+    return () => {
+      navigationGuardsRef.current.delete(guard)
+    }
   }, [])
 
   const requestNavigation = useCallback((next: () => void) => {
-    const guard = navigationGuardRef.current
-    if (guard) guard(next)
-    else next()
+    const guards = [...navigationGuardsRef.current]
+    const run = (index: number) => {
+      const guard = guards[index]
+      if (guard) guard(() => run(index + 1))
+      else next()
+    }
+    run(0)
   }, [])
 
   function selectSection(nextSection: Section) {

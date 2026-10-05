@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
+import type { GuardRegistrar } from '../../navigation'
+import { JournalEditor } from '../journals/JournalEditor'
 import { TaskCollection } from '../tasks/TaskCollection'
-import { TaskDetailDialog, type GuardRegistrar } from '../tasks/TaskDetailDialog'
+import { TaskDetailDialog } from '../tasks/TaskDetailDialog'
 import { dateRange, formatLocalDate, monthCells, monthLabel } from '../tasks/date'
 import type { useTaskDay } from '../tasks/useTaskDay'
 import type { Task, TaskSummary } from '../tasks/types'
@@ -151,6 +153,7 @@ export function DayView({ acceptTask, onSeriesChanged, onUnauthorized, registerN
       <div className="section-heading"><div><p className="eyebrow">Chế độ Ngày</p><h2 id="day-view-title">{formatLocalDate(selectedDate)}</h2><p>Công việc được sắp theo giờ bắt đầu.</p></div>{taskDay.refreshing && <span className="refresh-note">Đang cập nhật…</span>}</div>
       <TaskCollection date={selectedDate} tasks={taskDay.tasks} loading={taskDay.loading} error={taskDay.error} reload={taskDay.reload} acceptTask={acceptTask} removeTask={removeTask} onSeriesChanged={onSeriesChanged} onUnauthorized={onUnauthorized} registerNavigationGuard={registerNavigationGuard} />
     </section>
+    <JournalEditor key={selectedDate} date={selectedDate} onUnauthorized={onUnauthorized} registerNavigationGuard={registerNavigationGuard} />
     <section className="content-card" aria-labelledby="day-summary-title"><div className="section-heading"><div><h2 id="day-summary-title">Tổng quan ngày</h2><p>Số liệu cập nhật từ toàn bộ công việc trong ngày.</p></div></div>{taskDay.loading ? <div className="summary-loading">Đang tải tổng quan…</div> : <SummaryCards summary={taskDay.summary} />}</section>
   </div>
 }

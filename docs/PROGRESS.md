@@ -347,3 +347,40 @@ Kết luận: chặng 2B đã được người dùng duyệt sau khi thử lạ
 - Chặng 4A chỉ có backend nhật ký văn bản và đã được người dùng duyệt. Frontend chưa gọi các endpoint mới.
 - Giao diện nhật ký thuộc chặng 4B; ảnh nhật ký/công việc và chú thích thuộc chặng 4C. Hành trình và AI chưa triển khai.
 - Các thay đổi 4A được phép commit và push trong nhiệm vụ chốt chặng này; chưa deploy.
+
+## Chặng 4B — Giao diện nhật ký văn bản theo ngày
+
+### Đã triển khai
+
+- Module `features/journals` dùng chung ở Hôm nay và chế độ Ngày của Lịch; ngày trống không tự tạo dữ liệu và vẫn cho viết khi không có công việc.
+- Tạo, đọc, sửa và xóa nhật ký dùng đúng API/version của chặng 4A. Nội dung tối đa 20.000 ký tự theo `string.length`, giữ nguyên tiếng Việt, xuống dòng và khoảng trắng; văn bản React hiển thị không thực thi HTML.
+- Không tự lưu và không dùng Local Storage/Session Storage. Bản nháp chưa lưu được bảo vệ khi đổi ngày, chế độ/khoảng lịch, tab chính hoặc đăng xuất, với ba lựa chọn lưu, bỏ hoặc tiếp tục chỉnh; `beforeunload` dùng cảnh báo chung do trình duyệt kiểm soát.
+- Cơ chế đăng ký nhiều navigation guard bảo vệ đồng thời note công việc và nhật ký, không để guard sau ghi đè guard trước.
+- HTTP 409/404 do dữ liệu đổi ở tab khác giữ bản nháp. Người dùng đọc bản mới nhất để đối chiếu rồi chọn dùng bản server hoặc giữ/chỉnh bản nháp và chủ động lưu bằng version mới nhất.
+
+### Codex tự kiểm tra
+
+- Frontend `npm run typecheck`, `npm run lint`, `npm run build`: PASS. `git diff --check`: PASS, không có lỗi whitespace.
+- Backend `npm run typecheck`, `npm run lint`, `npm run build`: PASS. Toàn bộ `npm test` chạy trên database đã xác nhận là `daytrail_test`: 38 PASS, 0 fail/cancelled/skipped/todo.
+- Backend người dùng tại cổng `4000`: Codex gọi `/api/health` và `/api/ready`, đều HTTP 200. Ping riêng xác nhận kết nối kiểm thử dùng database thực tế `daytrail_test`.
+- Chrome headless kiểm thử tích hợp dùng backend riêng cổng `4017`, frontend riêng cổng `5177`, DevTools cổng `9227` và `daytrail_test`; không dùng API in-memory để thay thế backend thật và không dừng server người dùng.
+- PASS: tạo/đọc/sửa/reload/xóa nhật ký; đồng bộ Hôm nay và Lịch; cả ba lựa chọn **Lưu và tiếp tục**, **Bỏ thay đổi**, **Tiếp tục chỉnh**; note công việc và nhật ký cùng chưa lưu; xung đột HTTP 409 hai tab; xóa bằng version cũ hoặc bản ghi đã bị tab khác xóa; 401, cách ly hai tài khoản, HTTP 503/lỗi mạng và thử lại; hồi quy công việc, công việc lặp, bốn chế độ Lịch, responsive 360/390/1440 px. Runtime exception: 0.
+- Lỗi 503 được tạo bằng cách ngắt kết nối Mongoose chỉ trong server kiểm thử riêng. Lỗi mạng được tạo bằng Chrome chỉ chặn request kiểm thử. Cả hai đều giữ bản nháp, không báo thành công giả và không coi database gián đoạn là hết phiên.
+- Cleanup sau mỗi lượt và cuối cùng chỉ nhắm email marker ngẫu nhiên của nhiệm vụ trên `daytrail_test`; kiểm tra cuối còn 0 journal, task, series, session và user marker. Các cổng `4017`, `5177`, `9227` đã trống; không drop database/collection.
+
+### Trạng thái
+
+- **Bằng chứng người dùng cung cấp:** người dùng đã thử giao diện nhật ký và xác nhận hoạt động ổn, từ đó duyệt chặng 4B.
+- **Codex tự kiểm tra:** các kiểm chứng tích hợp với backend/database thật, 38/38 test backend và các kiểm tra frontend nêu ở trên đều PASS.
+- Chặng 4B đã nghiệm thu; các thay đổi được phép commit/push trong nhiệm vụ chốt chặng này. Chưa deploy.
+- Chặng 4C chưa bắt đầu: ảnh công việc, ảnh nhật ký và chú thích từng ảnh vẫn phải triển khai. Hành trình, AI, video, hồ sơ và chia sẻ chưa triển khai.
+
+### Blocker kết nối lịch sử trước khi Atlas phục hồi — Codex
+
+- Cổng development `4000` và `5173` không có tiến trình lắng nghe lúc 09:31 (UTC+7); `/api/health` và `/api/ready` đều bị từ chối kết nối. Codex không dừng hoặc khởi động lại server người dùng.
+- `.env` có cả hai cấu hình, cùng cluster, lần lượt khai báo đúng database `daytrail` và `daytrail_test`; không có biến môi trường tiến trình ghi đè hai URI. Nội dung URI và thông tin đăng nhập không được in.
+- Tiến trình ping riêng cho cả `daytrail` và `daytrail_test` đều nhận `MongooseServerSelectionError`. Topology có ba server `Unknown`; lỗi con quan sát được là `MongoNetworkError` / `ERR_SSL_TLSV1_ALERT_INTERNAL_ERROR` trước bước xác thực.
+- DNS mặc định của Node phân giải SRV thành ba node cổng 27017 và phân giải TXT thành công. Kết nối TCP và bắt tay TLS tới cả ba node đều timeout trong 5 giây/node.
+- Bằng chứng hiện tại khoanh vùng ở đường mạng/Atlas Network Access hoặc trạng thái cluster trước xác thực; chưa đủ quyền đọc Atlas để xác nhận IP Access List hay trạng thái cluster. Vì vậy chưa kết luận riêng nguyên nhân là IP và chưa sửa DNS/TLS/allowlist.
+- Không chạy kiểm thử trình duyệt/database thật, không tạo dữ liệu test và không sửa source trong lượt chẩn đoán này. Cần khôi phục kết nối Atlas cho cả database development/test trước khi tiếp tục nghiệm thu 4B.
+- Ghi nhận này là bằng chứng chẩn đoán trước thời điểm kết nối phục hồi, không còn là blocker hiện tại: sau đó người dùng khởi động backend bình thường tại `4000`, và kiểm chứng tích hợp thật ở phần trên đã kết nối được `daytrail_test`.

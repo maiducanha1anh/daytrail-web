@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { TaskFormDialog } from '../tasks/TaskFormDialog'
-import type { GuardRegistrar } from '../tasks/TaskDetailDialog'
+import type { GuardRegistrar } from '../../navigation'
 import { addDays, daysInMonth, endOfWeek, formatLocalDate, monthLabel, moveToMonth, moveToYear, parseLocalDate, startOfWeek, toLocalDateKey, todayKey } from '../tasks/date'
 import { useTaskDay } from '../tasks/useTaskDay'
 import type { Task } from '../tasks/types'
