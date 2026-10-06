@@ -1,6 +1,6 @@
 # DayTrail — Đặc tả sản phẩm
 
-DayTrail là ứng dụng quản lý công việc cá nhân kết hợp nhật ký, dùng trên máy tính và điện thoại. Frontend và backend tách riêng; dữ liệu MongoDB được phân tách theo tài khoản. Ảnh sẽ nằm trong object storage (dịch vụ lưu file, dự kiến Cloudflare R2); MongoDB chỉ lưu metadata và khóa file.
+DayTrail là ứng dụng quản lý công việc cá nhân kết hợp nhật ký, dùng trên máy tính và điện thoại. Frontend và backend tách riêng; dữ liệu MongoDB được phân tách theo tài khoản. Ảnh dùng Cloudflare R2 private bucket; MongoDB chỉ lưu metadata và khóa file. Backend 4C.1 đã triển khai, frontend ảnh 4C.2 chưa triển khai.
 
 ## Hôm nay
 
@@ -21,7 +21,7 @@ Lịch là nơi tạo công việc cho ngày đang chọn. Form gồm tên, gi�
 
 Ngày không có công việc không được tính là 0% hoàn thành.
 
-Lặp lại V1 gồm: không lặp, hằng ngày, hằng tuần chọn nhiều thứ và hằng tháng cùng ngày trong tháng. Chuỗi bắt buộc ngày kết thúc, tối đa 366 ngày; tháng thiếu ngày tương ứng thì bỏ qua. Mỗi lần xuất hiện có trạng thái, ghi chú và ảnh riêng. Chuyển ngày giữ dữ liệu và liên kết ngày dự kiến ban đầu. Dừng chuỗi từ một ngày sẽ giữ lịch sử đã hoàn thành/có note và xóa phần tương lai chưa có dữ liệu. Chưa hỗ trợ sửa hàng loạt quy tắc chuỗi.
+Lặp lại V1 gồm: không lặp, hằng ngày, hằng tuần chọn nhiều thứ và hằng tháng cùng ngày trong tháng. Chuỗi bắt buộc ngày kết thúc, tối đa 366 ngày; tháng thiếu ngày tương ứng thì bỏ qua. Mỗi lần xuất hiện có trạng thái, ghi chú và ảnh riêng. Chuyển ngày giữ dữ liệu và liên kết ngày dự kiến ban đầu. Dừng chuỗi từ một ngày sẽ giữ lịch sử đã hoàn thành/có note/có ảnh và xóa phần tương lai chưa có dữ liệu. Chưa hỗ trợ sửa hàng loạt quy tắc chuỗi.
 
 ## Hành trình
 
@@ -35,7 +35,7 @@ Hồ sơ và lời mở đầu cá nhân, video hồi tưởng và chia sẻ hà
 
 Sản phẩm hỗ trợ đăng ký, đăng nhập, đăng xuất và khôi phục phiên. Mật khẩu phải được hash bằng thuật toán chuyên dụng; phiên phải an toàn; backend kiểm tra quyền sở hữu trên mỗi tài nguyên. Không lưu token đăng nhập trong `localStorage`.
 
-Nhật ký và ảnh mặc định là riêng tư. Ngày cá nhân dùng múi giờ `Asia/Ho_Chi_Minh`, phân biệt ngày lịch, giờ địa phương và timestamp. Tự lưu, xử lý lỗi, thùng rác và sao lưu nằm trong lộ trình V1.
+Nhật ký và ảnh mặc định là riêng tư. Ảnh không dùng URL public dài hạn; backend kiểm tra session/chủ sở hữu trước khi xem và chỉ khóa backend được truy cập object storage. Ngày cá nhân dùng múi giờ `Asia/Ho_Chi_Minh`, phân biệt ngày lịch, giờ địa phương và timestamp. Tự lưu, xử lý lỗi, thùng rác và sao lưu nằm trong lộ trình V1.
 
 ## Trạng thái triển khai
 
@@ -47,6 +47,6 @@ Nhật ký và ảnh mặc định là riêng tư. Ngày cá nhân dùng múi gi
 - Bốn chế độ Lịch Năm/Tháng/Tuần/Ngày của chặng 3A đã được triển khai, kiểm chứng và người dùng duyệt.
 - Backend công việc lặp hữu hạn của chặng 3B.1 và giao diện tạo, nhận biết, thao tác một lần, dừng chuỗi của chặng 3B.2 đã được kiểm chứng và người dùng duyệt. Chặng 3B hoàn tất trong phạm vi V1 đã thống nhất; chưa hỗ trợ sửa hàng loạt quy tắc chuỗi.
 - Backend nhật ký văn bản theo ngày của chặng 4A đã được Codex kiểm chứng và người dùng duyệt về backend.
-- Giao diện nhật ký văn bản chặng 4B đã được triển khai và đang chờ người dùng kiểm tra/duyệt. Ảnh, Hành trình đầy đủ, quên mật khẩu, xác minh email, đăng nhập Google, chỉnh hồ sơ và AI chưa được triển khai.
+- Giao diện nhật ký văn bản chặng 4B đã được kiểm chứng và người dùng duyệt. Backend ảnh 4C.1 đã có source/API, 46/46 test PASS bằng DNS tạm và được người dùng duyệt về backend; giao diện ảnh 4C.2 chưa làm nên toàn bộ chặng 4C chưa hoàn tất. Hành trình đầy đủ, quên mật khẩu, xác minh email, đăng nhập Google, chỉnh hồ sơ và AI chưa được triển khai.
 
 Chi tiết bằng chứng nằm trong [PROGRESS.md](PROGRESS.md); thứ tự triển khai nằm trong [ROADMAP.md](ROADMAP.md).

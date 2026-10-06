@@ -139,8 +139,7 @@ Kết luận: chặng 1B.2 đã được người dùng duyệt. Thay đổi đ�
 
 ### Codex kiểm tra
 
-- Backend `npm run typecheck`: PASS.
-- Backend `npm run lint`: PASS.
+- Backend `npm run typecheck`, `npm run lint`, `npm run build`: PASS sau sửa race journal chỉ-ảnh.
 - Backend `npm run build`: PASS.
 - Toàn bộ `npm test` chạy trên database thực tế `daytrail_test`: 17 PASS, 0 fail/cancelled/skipped/todo; gồm 8 test auth và 9 test công việc.
 - Test công việc bao phủ tạo/đọc/sửa/chuyển ngày/note/hoàn thành/bỏ hoàn thành/xóa, validation ngày nhuận/ngày/giờ/enum/kiểu/độ dài, lọc/sắp xếp/phân trang, tổng quan và cách ly hai tài khoản.
@@ -384,3 +383,47 @@ Kết luận: chặng 2B đã được người dùng duyệt sau khi thử lạ
 - Bằng chứng hiện tại khoanh vùng ở đường mạng/Atlas Network Access hoặc trạng thái cluster trước xác thực; chưa đủ quyền đọc Atlas để xác nhận IP Access List hay trạng thái cluster. Vì vậy chưa kết luận riêng nguyên nhân là IP và chưa sửa DNS/TLS/allowlist.
 - Không chạy kiểm thử trình duyệt/database thật, không tạo dữ liệu test và không sửa source trong lượt chẩn đoán này. Cần khôi phục kết nối Atlas cho cả database development/test trước khi tiếp tục nghiệm thu 4B.
 - Ghi nhận này là bằng chứng chẩn đoán trước thời điểm kết nối phục hồi, không còn là blocker hiện tại: sau đó người dùng khởi động backend bình thường tại `4000`, và kiểm chứng tích hợp thật ở phần trên đã kết nối được `daytrail_test`.
+
+## Chặng 4C.0 — Thiết kế lưu trữ ảnh và chuẩn bị triển khai
+
+- Codex đã hoàn tất thiết kế; người dùng sau đó tạo hai bucket private `daytrail-media-dev` và `daytrail-media-test`, đồng thời đặt hai bộ cấu hình riêng trong backend.
+- Đề xuất Cloudflare R2 private bucket, MongoDB lưu metadata, backend xác thực và stream ảnh; không dùng base64, local disk làm nơi lưu deploy, public bucket hay secret `VITE_*`.
+- Thiết kế đã bao phủ ảnh nhiều cho task/journal, journal chỉ-ảnh, chú thích, version journal, chuyển ngày, dừng chuỗi giữ lần có ảnh, kiểm tra bytes thật, thumbnail/orientation/xóa EXIF GPS, idempotency, orphan/retry và bucket test riêng.
+- Kế hoạch 4C.1 backend, 4C.2 frontend, biến môi trường placeholder và thao tác Cloudflare nằm trong [IMAGE_STORAGE_DESIGN.md](IMAGE_STORAGE_DESIGN.md).
+- 4C.0 đã được dùng làm phương án triển khai 4C.1. Giao diện 4C.2 chưa bắt đầu.
+
+## Chặng 4C.1 — Backend ảnh riêng tư
+
+### Đã triển khai
+
+- Thêm adapter Cloudflare R2 qua S3 API; khóa chỉ nằm ở backend. Thiếu cấu hình development không làm hỏng auth/task/journal, còn endpoint ảnh trả 503 an toàn.
+- Thêm `MediaAsset`, unique index cho quota slot và idempotency, trạng thái `uploading`/`ready`/`deleting`/`cleanup_failed`, worker cleanup có backoff và retry qua restart.
+- Upload task/journal dùng multipart riêng, session, Origin và owner từ session. Backend kiểm tra bytes/giải mã, giới hạn 8 MiB và 20 triệu pixel, nhận JPEG/PNG/WebP tĩnh, xoay orientation, bỏ metadata, tạo WebP full 2.560 px cùng thumbnail 480 px.
+- Mỗi task/journal tối đa 12 ảnh. `clientUploadId` giúp retry cùng payload không tạo trùng; payload khác trả 409. Chú thích tối đa 500 ký tự và giữ tiếng Việt/xuống dòng.
+- Bucket private chỉ được đọc qua API có xác thực. Response không trả object key, secret hoặc URL public dài hạn.
+- Journal chỉ-ảnh được hỗ trợ. Thêm/xóa ảnh hoặc sửa caption tăng `Journal.version`; xóa ảnh cuối của journal không chữ sẽ xóa journal rỗng.
+- Chuyển ngày task giữ ảnh. Xóa task/journal ẩn metadata trước rồi dọn R2; lỗi xóa trả trạng thái pending và worker retry. Dừng chuỗi lặp giữ lần có ảnh đang hoạt động.
+- Thêm 8 integration test media và nối vào `npm test`. Test bắt buộc đúng `daytrail_test` và `daytrail-media-test`, dùng prefix ngẫu nhiên và không fallback sang development.
+
+### Kiểm chứng của Codex
+
+- Backend `npm run typecheck`, `npm run lint`, `npm run build`: PASS.
+- DNS mặc định của hotspot vẫn làm Node nhận `EBADRESP`. Codex chỉ nạp `dns.setServers` với `1.1.1.1` và `8.8.8.8` qua `NODE_OPTIONS` của từng tiến trình test; không tạo preload trong repo, không đổi DNS Windows/source/URI/TLS. Biến này được tiến trình test runner và tiến trình Node con kế thừa.
+- Suite media dùng database đã xác nhận `daytrail_test`, bucket `daytrail-media-test` và khóa `R2_TEST_*`: 8/8 PASS, 0 fail/cancelled/skipped/todo.
+- Toàn bộ backend: 46/46 PASS, gồm 8 auth, 10 task, 10 recurrence, 9 journal, 1 database-unavailable và 8 media. Con số 47/9 ở báo cáo trước là lỗi đếm; source thực tế có 46/8.
+- Luồng thật MongoDB + R2 đã kiểm tra upload/list/read full-thumbnail/sửa caption/xóa, session/owner, idempotency, journal version, quota 12 khi có request đồng thời, partial upload, durable cleanup retry, xóa owner trong lúc upload và dừng chuỗi giữ lần có ảnh.
+- Cleanup cuối: 0 user marker 4C.1, 0 media marker và 0 object dưới prefix `daytrail/test/`; không drop database/collection/bucket.
+- Kiểm tra chất lượng trong bộ nhớ: mẫu ảnh 12 MP dạng ảnh chụp được chuyển từ JPEG 4.032×3.024 xuống WebP 2.560×1.920, thumbnail 480×360, PSNR 40,03 dB, dung lượng full bằng 20,4% input. Mẫu raster có chữ 1.800×1.200 không bị thu nhỏ ở bản full, thumbnail 480×320, PSNR 42,30 dB, dung lượng bằng 40% input. Hai output đều là WebP và không còn EXIF. Trần 2.560 px giảm chi tiết khi zoom sâu ảnh chụp 12 MP; bản full ảnh chữ vẫn rõ hơn thumbnail, thumbnail không dành để đọc chữ nhỏ.
+
+### Bằng chứng người dùng cung cấp
+
+- DNS mặc định hotspot: truy vấn SRV/TXT đều `EBADRESP`; resolver `1.1.1.1` và `8.8.8.8` truy vấn thành công.
+- Người dùng chạy `verifyDatabase.ts` với `dns.setServers` chỉ trong tiến trình và xác nhận connect/ping cùng ghi–đọc–xóa trên database `daytrail` thành công.
+- Đây không phải kết quả Codex và không được dùng thay cho suite media; suite media/test đầy đủ của Codex dùng riêng `daytrail_test`.
+
+### Trạng thái
+
+- **Đạt về kỹ thuật; người dùng đã duyệt chặng 4C.1 về backend dựa trên báo cáo kiểm chứng.**
+- `npm run dev` bình thường trên hotspot, không có DNS preload, **chưa được xác nhận hoạt động**. Workaround DNS chỉ dùng cho kiểm thử; chưa hardcode hoặc đưa vào cấu hình ứng dụng.
+- Chất lượng cảm quan với ảnh chụp từ điện thoại thật chưa được kiểm chứng; sẽ kiểm tra ở 4C.2. Các số liệu WebP hiện tại chỉ đến từ mẫu kiểm tra trong bộ nhớ.
+- 4C.2 frontend ảnh chưa bắt đầu; toàn bộ chặng 4C chưa hoàn tất.

@@ -36,8 +36,12 @@ Chặng 3B hoàn tất trong phạm vi V1 đã thống nhất. Chưa hỗ trợ 
 Triển khai nhật ký riêng tư độc lập với công việc: ngày không có công việc vẫn có nhật ký, hỗ trợ nhiều ảnh và chú thích từng ảnh. Bổ sung ảnh công việc để xem lại từ chi tiết công việc ở ngày cũ; file nằm trong object storage và MongoDB lưu metadata. Điều kiện nghiệm thu: quyền riêng tư, lỗi upload và dọn file được kiểm thử.
 
 - 4A — Backend nhật ký văn bản theo ngày, version chống ghi đè và danh sách đoạn trích: đã triển khai, Codex kiểm chứng và được người dùng duyệt về backend.
-- 4B — Giao diện viết, xem lại, xóa, bảo vệ bản nháp và xử lý xung đột version: đã triển khai về kỹ thuật, đang chờ người dùng kiểm tra/duyệt.
-- 4C — Ảnh nhật ký/công việc và chú thích: chưa triển khai.
+- 4B — Giao diện viết, xem lại, xóa, bảo vệ bản nháp và xử lý xung đột version: đã triển khai, kiểm chứng và được người dùng duyệt.
+- 4C.0 — Thiết kế private object storage, vòng đời ảnh và kế hoạch kiểm thử: đã duyệt; hai bucket private development/test đã được người dùng tạo.
+- 4C.1 — Backend ảnh: adapter lưu trữ, metadata, quyền, cleanup/retry và suite tích hợp đã triển khai; 46/46 test PASS bằng DNS tạm trong tiến trình và đã được người dùng duyệt về backend. Development bình thường trên hotspot chưa xác nhận.
+- 4C.2 — Frontend ảnh: chọn/xem/xóa/chú thích và xử lý lỗi responsive: chưa bắt đầu.
+
+Toàn bộ chặng 4C chưa hoàn tất cho đến khi 4C.2 được triển khai và nghiệm thu.
 
 ## Chặng 5 — Hành trình
 

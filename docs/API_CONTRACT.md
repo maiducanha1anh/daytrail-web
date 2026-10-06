@@ -429,6 +429,53 @@ Khoảng tối đa 366 ngày. `page` mặc định 1; `limit` mặc định 20, 
 
 Thiếu/sai `from`, `to`; `to < from`; khoảng quá 366 ngày; page/limit sai hoặc query ngoài danh sách cho phép trả HTTP 400. Nhật ký độc lập với công việc: ngày không có task vẫn có thể tạo và xuất hiện trong danh sách.
 
+## Ảnh riêng tư cho công việc và nhật ký — 4C.1
+
+Mọi endpoint dưới đây yêu cầu cookie phiên hợp lệ và chỉ truy cập dữ liệu của user trong session. Bucket R2 là private; response không chứa `userId`, object key, access key hoặc URL public lâu dài. URL `fullUrl` và `thumbnailUrl` là endpoint nội bộ của API.
+
+Giới hạn V1: tối đa 12 ảnh cho mỗi task hoặc journal; input tối đa 8 MiB; caption tối đa 500 ký tự. Chỉ nhận JPEG, PNG và WebP tĩnh sau khi kiểm tra bytes và giải mã thật. Backend xoay orientation, bỏ metadata, tạo WebP full tối đa 2.560 px cùng thumbnail tối đa 480 px; không giữ file gốc.
+
+Metadata ảnh trả về gồm `id`, `caption`, `mimeType`, `byteSize`, kích thước full/thumbnail, `version`, timestamps, `fullUrl` và `thumbnailUrl`.
+
+### `POST /api/tasks/:taskId/images`
+
+Gửi `multipart/form-data` với đúng một trường file tên `file`, `clientUploadId` là UUID và `caption` tùy chọn. Origin phải đúng `FRONTEND_ORIGIN`. Không gửi JSON cho endpoint này.
+
+- HTTP 201 khi tạo ảnh mới.
+- HTTP 200 khi gửi lại cùng `clientUploadId`, cùng bytes và caption; response trả đúng asset cũ.
+- HTTP 409 khi dùng lại `clientUploadId` với payload khác hoặc đã đủ 12 ảnh.
+- HTTP 400/413/415 lần lượt cho form/bytes sai, file quá lớn/pixel vượt trần, hoặc định dạng không hỗ trợ.
+
+### `GET /api/tasks/:taskId/images`
+
+Trả mảng `images` đã sắp theo thời điểm tạo. Task sai ID trả 400; không tồn tại hoặc thuộc user khác trả 404.
+
+### `POST /api/journals/:date/images`
+
+Multipart giống ảnh task và bắt buộc thêm trường `version`: dùng chuỗi `null` khi ngày chưa có journal, hoặc version nguyên dương mới nhất đã đọc. Ảnh đầu có thể tạo journal với content rỗng và version 1. Mỗi lần thêm ảnh thành công làm tăng version của journal hiện có. Xung đột version trả HTTP 409 và không ghi đè.
+
+### `GET /api/journals/:date/images`
+
+Trả `images` cùng `journalVersion`. Ngày chưa có journal trả mảng rỗng và `journalVersion: null`; thao tác đọc không tự tạo dữ liệu.
+
+### `GET /api/images/:imageId/file?variant=full|thumbnail`
+
+Backend kiểm tra session, owner và quan hệ task/journal trước rồi mới đọc R2. Thành công trả `image/webp`, `Cache-Control: private, no-store`, `Content-Disposition: inline` và `X-Content-Type-Options: nosniff`. Không đăng nhập trả 401; ảnh của user khác hoặc đã bị xóa trả 404.
+
+### `PATCH /api/images/:imageId`
+
+Yêu cầu JSON, Origin hợp lệ, `caption` và `version` ảnh. Với ảnh journal phải kèm `journalVersion`; với ảnh task không được gửi trường này. Thành công trả metadata ảnh có version tăng 1 và, khi áp dụng, `journalVersion` mới. Version cũ trả 409.
+
+### `DELETE /api/images/:imageId`
+
+Yêu cầu JSON và Origin hợp lệ, body có `version`; ảnh journal phải kèm `journalVersion`. Ảnh bị ẩn khỏi API trong transaction trước khi gọi R2. HTTP 200 cùng `cleanupStatus: deleted` khi hai object đã dọn; HTTP 202 cùng `cleanupStatus: pending` khi job bền vững sẽ retry. Xóa ảnh cuối của journal chỉ-ảnh đồng thời xóa journal rỗng và trả `journalVersion: null`.
+
+Xóa task hoặc journal có ảnh có thể trả HTTP 200/202 cùng trạng thái cleanup thay cho 204. Chuyển ngày task giữ nguyên ảnh vì ID task không đổi. Dừng chuỗi lặp giữ lần có ảnh đang hoạt động, giống lần có note hoặc đã hoàn thành.
+
+### Lỗi dịch vụ ảnh
+
+Thiếu cấu hình hoặc R2 gián đoạn trả HTTP 503, mã `MEDIA_STORAGE_UNAVAILABLE` và `Retry-After: 5`. Việc này không phải phiên hết hạn và không ảnh hưởng endpoint auth/task/journal không dùng storage. Quá nhiều upload đang xử lý trả HTTP 429. MongoDB gián đoạn vẫn dùng lỗi `DATABASE_UNAVAILABLE` bên dưới.
+
 ## Database tạm thời không sẵn sàng
 
 Endpoint cần MongoDB trả HTTP 503 khi kết nối database bị gián đoạn:

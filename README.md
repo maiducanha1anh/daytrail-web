@@ -52,7 +52,7 @@ Kết quả kiểm chứng chặng 3A: Codex chạy `typecheck`, `lint`, `build`
 
 Kết quả kiểm chứng chặng 3B.2: frontend `typecheck`, `lint`, `build` PASS. Chrome headless dùng backend/frontend riêng tại 4015/5176 và `daytrail_test`: tạo một lần, lặp ngày/tuần/tháng, ngày 31, thao tác một lần, dừng từ lần đã chuyển ngày, bảo vệ note khi HTTP 503, reload không sinh trùng và responsive 360/390/1440 px đều PASS; runtime exception có 0. Dữ liệu và tiến trình test đã được dọn.
 
-Kết quả kỹ thuật chặng 4B: frontend `typecheck`, `lint`, `build` PASS. Codex đã kiểm tra Chrome headless với backend riêng cổng `4017`, frontend riêng cổng `5177` và database thật `daytrail_test`: tạo/đọc/sửa/reload/xóa, đồng bộ Hôm nay–Lịch, bảo vệ ba lựa chọn bản nháp, xung đột hai tab, 401, cách ly tài khoản, HTTP 503/lỗi mạng, hồi quy công việc/công việc lặp và responsive 360/390/1440 px đều PASS; runtime exception có 0. Backend người dùng tại `4000` không bị dừng. Dữ liệu test mang marker riêng đã được dọn. Chặng vẫn chờ người dùng thử và duyệt, chưa commit/push.
+Kết quả nghiệm thu chặng 4B: frontend `typecheck`, `lint`, `build` PASS. Codex đã kiểm tra Chrome headless với backend riêng cổng `4017`, frontend riêng cổng `5177` và database thật `daytrail_test`: tạo/đọc/sửa/reload/xóa, đồng bộ Hôm nay–Lịch, bảo vệ ba lựa chọn bản nháp, xung đột hai tab, 401, cách ly tài khoản, HTTP 503/lỗi mạng, hồi quy công việc/công việc lặp và responsive 360/390/1440 px đều PASS; runtime exception có 0. Người dùng đã thử giao diện và duyệt; thay đổi đã push. Backend ảnh riêng tư 4C.1 đã kiểm chứng 46/46 test bằng DNS tạm trong tiến trình và được người dùng duyệt về backend; giao diện ảnh 4C.2 chưa bắt đầu nên toàn bộ chặng 4C chưa hoàn tất.
 
 ## Kiểm tra thủ công luồng tài khoản và công việc
 
