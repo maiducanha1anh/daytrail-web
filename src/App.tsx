@@ -140,7 +140,6 @@ function AuthenticatedView({ user, onLogout, onSessionExpired, logoutError, logg
       <button className="logout-button" type="button" onClick={() => requestNavigation(onLogout)} disabled={loggingOut}>{loggingOut ? 'Đang đăng xuất…' : 'Đăng xuất'}</button>
     </div>} />
     {logoutError && <div className="form-message error logout-error" role="alert">{logoutError}</div>}
-    <section className="product-intro"><div><p className="eyebrow">Không gian cá nhân</p><h1>Mỗi ngày một bước tiến.</h1></div><p>Công việc và những điều bạn muốn ghi nhớ, theo nhịp riêng của bạn.</p></section>
     <nav className="tabs" aria-label="Điều hướng chính">{sections.map((item) => <button key={item} type="button" className={section === item ? 'active' : ''} onClick={() => selectSection(item)} aria-current={section === item ? 'page' : undefined}>{item}</button>)}</nav>
     {section === 'Hôm nay' && <TodayPage onOpenCalendar={() => selectSection('Lịch')} onUnauthorized={onSessionExpired} registerNavigationGuard={registerNavigationGuard} />}
     {section === 'Lịch' && <CalendarPage onUnauthorized={onSessionExpired} registerNavigationGuard={registerNavigationGuard} requestNavigation={requestNavigation} />}

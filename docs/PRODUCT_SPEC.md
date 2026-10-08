@@ -1,6 +1,6 @@
 # DayTrail — Đặc tả sản phẩm
 
-DayTrail là ứng dụng quản lý công việc cá nhân kết hợp nhật ký, dùng trên máy tính và điện thoại. Frontend và backend tách riêng; dữ liệu MongoDB được phân tách theo tài khoản. Ảnh dùng Cloudflare R2 private bucket; MongoDB chỉ lưu metadata và khóa file. Backend 4C.1 đã triển khai, frontend ảnh 4C.2 chưa triển khai.
+DayTrail là ứng dụng quản lý công việc cá nhân kết hợp nhật ký, dùng trên máy tính và điện thoại. Frontend và backend tách riêng; dữ liệu MongoDB được phân tách theo tài khoản. Ảnh dùng Cloudflare R2 private bucket; MongoDB chỉ lưu metadata và khóa file. Backend 4C.1 và frontend ảnh 4C.2 đã được duyệt; người dùng đã thử giao diện 4C.2 trên máy tính. Kiểm thử điện thoại thật và chất lượng ảnh chụp điện thoại là mục bắt buộc trước phát hành, hiện chưa được xác nhận.
 
 ## Hôm nay
 
@@ -8,7 +8,7 @@ Màn hình gồm danh sách công việc, nhật ký ngày và tổng quan ngày
 
 Note công việc là nội dung riêng với mô tả kế hoạch và được chỉnh từ chi tiết công việc, kể cả trước khi hoàn thành. Note và ảnh của công việc cũ được xem lại từ chính chi tiết công việc ở ngày đó. Không tạo công việc trực tiếp tại màn hình Hôm nay.
 
-Nhật ký ngày độc lập với công việc. Ngày không có công việc vẫn viết được nhật ký. Giao diện văn bản dùng chung giữa Hôm nay và chế độ Ngày của Lịch, bảo vệ bản nháp chưa lưu và không tự ghi đè khi hai tab xung đột. Nhiều ảnh cùng chú thích từng ảnh thuộc chặng 4C, chưa triển khai.
+Nhật ký ngày độc lập với công việc. Ngày không có công việc vẫn viết được nhật ký. Giao diện văn bản dùng chung giữa Hôm nay và chế độ Ngày của Lịch, bảo vệ bản nháp chưa lưu và không tự ghi đè khi hai tab xung đột. Giao diện nhiều ảnh và chú thích từng ảnh của 4C.2 đã được kiểm chứng kỹ thuật và người dùng duyệt trên máy tính.
 
 ## Lịch
 
@@ -47,6 +47,6 @@ Nhật ký và ảnh mặc định là riêng tư. Ảnh không dùng URL public
 - Bốn chế độ Lịch Năm/Tháng/Tuần/Ngày của chặng 3A đã được triển khai, kiểm chứng và người dùng duyệt.
 - Backend công việc lặp hữu hạn của chặng 3B.1 và giao diện tạo, nhận biết, thao tác một lần, dừng chuỗi của chặng 3B.2 đã được kiểm chứng và người dùng duyệt. Chặng 3B hoàn tất trong phạm vi V1 đã thống nhất; chưa hỗ trợ sửa hàng loạt quy tắc chuỗi.
 - Backend nhật ký văn bản theo ngày của chặng 4A đã được Codex kiểm chứng và người dùng duyệt về backend.
-- Giao diện nhật ký văn bản chặng 4B đã được kiểm chứng và người dùng duyệt. Backend ảnh 4C.1 đã có source/API, 46/46 test PASS bằng DNS tạm và được người dùng duyệt về backend; giao diện ảnh 4C.2 chưa làm nên toàn bộ chặng 4C chưa hoàn tất. Hành trình đầy đủ, quên mật khẩu, xác minh email, đăng nhập Google, chỉnh hồ sơ và AI chưa được triển khai.
+- Giao diện nhật ký văn bản chặng 4B đã được kiểm chứng và người dùng duyệt. Backend ảnh 4C.1 có 46/46 test PASS và được người dùng duyệt. Giao diện ảnh 4C.2 đã đạt kiểm chứng kỹ thuật với backend/R2 test thật; người dùng đã thử trên máy tính và duyệt 4C.2 cùng lượt tinh gọn UI. Chặng 4C hoàn tất trong phạm vi nghiệm thu hiện tại. Kiểm thử điện thoại thật và chất lượng ảnh chụp điện thoại chưa PASS, phải hoàn thành trước phát hành. Hành trình đầy đủ, quên mật khẩu, xác minh email, đăng nhập Google, chỉnh hồ sơ và AI chưa được triển khai.
 
 Chi tiết bằng chứng nằm trong [PROGRESS.md](PROGRESS.md); thứ tự triển khai nằm trong [ROADMAP.md](ROADMAP.md).

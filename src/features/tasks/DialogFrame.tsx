@@ -8,20 +8,31 @@ export function DialogFrame({ children, labelledBy, onClose, wide = false }: {
 }) {
   const panelRef = useRef<HTMLDivElement>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
+  const onCloseRef = useRef(onClose)
+
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const handleEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      onCloseRef.current()
+    }
     document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', handleEscape)
     closeRef.current?.focus()
-    return () => { document.body.style.overflow = previousOverflow }
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleEscape)
+      if (previousFocus?.isConnected) previousFocus.focus()
+    }
   }, [])
 
   function trapFocus(event: KeyboardEvent<HTMLDivElement>) {
-    if (event.key === 'Escape') {
-      event.preventDefault()
-      onClose()
-      return
-    }
     if (event.key !== 'Tab') return
     const focusable = panelRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])')
     if (!focusable?.length) return

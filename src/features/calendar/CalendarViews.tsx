@@ -50,7 +50,7 @@ export function YearView({ error, loading, onOpenMonth, onRetry, summaries, year
   }), [summaries, year])
 
   return <section className="content-card calendar-main-view" aria-labelledby="year-view-title">
-    <div className="section-heading"><div><h2 id="year-view-title">Tổng quan năm {year}</h2><p>Chỉ tải số liệu tổng hợp, không tải mô tả hoặc note công việc.</p></div></div>
+    <div className="section-heading"><h2 id="year-view-title">Tổng quan năm {year}</h2></div>
     <RangeFeedback error={error} loading={loading} onRetry={onRetry} />
     {!loading && !error && <div className="year-grid">{months.map((item) => <button key={item.month} type="button" className="year-month-card" onClick={() => onOpenMonth(item.month)}>
       <span>{monthLabel(year, item.month)}</span>
@@ -81,7 +81,7 @@ export function MonthView({ acceptTask, error, loading, onOpenDay, onRetry, onSe
   const byDate = useMemo(() => summaryMap(summaries), [summaries])
   return <div className="calendar-view-stack">
     <section className="content-card calendar-main-view" aria-labelledby="month-view-title">
-      <div className="section-heading"><div><h2 id="month-view-title">{monthLabel(year, month)}</h2><p>Tuần bắt đầu từ thứ Hai. Chọn một ngày để xem danh sách bên dưới.</p></div></div>
+      <div className="section-heading"><h2 id="month-view-title">{monthLabel(year, month)}</h2></div>
       <RangeFeedback error={error} loading={loading} onRetry={onRetry} />
       <div className="month-view-weekdays" aria-hidden="true">{monthWeekDays.map((day) => <span key={day}>{day}</span>)}</div>
       <div className="month-view-grid">{cells.map((cell) => {
@@ -95,7 +95,7 @@ export function MonthView({ acceptTask, error, loading, onOpenDay, onRetry, onSe
       })}</div>
     </section>
     <section className="content-card calendar-selected-day" aria-labelledby="month-selected-title">
-      <div className="section-heading"><div><p className="eyebrow">Ngày đã chọn</p><h2 id="month-selected-title">{formatLocalDate(selectedDate)}</h2><p>Xem nhanh công việc hoặc mở chế độ Ngày để có tổng quan đầy đủ.</p></div><button className="secondary-button" type="button" onClick={onOpenDay}>Mở chế độ Ngày</button></div>
+      <div className="section-heading"><div><p className="eyebrow">Ngày đã chọn</p><h2 id="month-selected-title">{formatLocalDate(selectedDate)}</h2></div><button className="secondary-button" type="button" onClick={onOpenDay}>Mở chế độ Ngày</button></div>
       <TaskCollection date={selectedDate} tasks={taskDay.tasks} loading={taskDay.loading} error={taskDay.error} reload={taskDay.reload} acceptTask={acceptTask} removeTask={removeTask} onSeriesChanged={onSeriesChanged} onUnauthorized={onUnauthorized} registerNavigationGuard={registerNavigationGuard} />
     </section>
   </div>
@@ -126,7 +126,7 @@ export function WeekView({ error, from, loading, onOpenDay, onRetry, onSeriesCha
   }
 
   return <section className="content-card calendar-main-view" aria-labelledby="week-view-title">
-    <div className="section-heading"><div><h2 id="week-view-title">Kế hoạch trong tuần</h2><p>Công việc trùng giờ được xếp thành các thẻ riêng, không che lên nhau.</p></div></div>
+    <div className="section-heading"><h2 id="week-view-title">Kế hoạch trong tuần</h2></div>
     {seriesNotice && <div className="form-message success collection-notice" role="status">{seriesNotice}</div>}
     <RangeFeedback error={error} loading={loading} onRetry={onRetry} />
     {!loading && !error && <div className="week-board">{dates.map((date, index) => <section key={date} className={`week-day-column ${date === today ? 'today' : ''}`}>
@@ -150,10 +150,10 @@ export function DayView({ acceptTask, onSeriesChanged, onUnauthorized, registerN
 }) {
   return <div className="calendar-view-stack">
     <section className="content-card calendar-selected-day" aria-labelledby="day-view-title">
-      <div className="section-heading"><div><p className="eyebrow">Chế độ Ngày</p><h2 id="day-view-title">{formatLocalDate(selectedDate)}</h2><p>Công việc được sắp theo giờ bắt đầu.</p></div>{taskDay.refreshing && <span className="refresh-note">Đang cập nhật…</span>}</div>
+      <div className="section-heading"><div><p className="eyebrow">Chế độ Ngày</p><h2 id="day-view-title">{formatLocalDate(selectedDate)}</h2></div>{taskDay.refreshing && <span className="refresh-note">Đang cập nhật…</span>}</div>
       <TaskCollection date={selectedDate} tasks={taskDay.tasks} loading={taskDay.loading} error={taskDay.error} reload={taskDay.reload} acceptTask={acceptTask} removeTask={removeTask} onSeriesChanged={onSeriesChanged} onUnauthorized={onUnauthorized} registerNavigationGuard={registerNavigationGuard} />
     </section>
     <JournalEditor key={selectedDate} date={selectedDate} onUnauthorized={onUnauthorized} registerNavigationGuard={registerNavigationGuard} />
-    <section className="content-card" aria-labelledby="day-summary-title"><div className="section-heading"><div><h2 id="day-summary-title">Tổng quan ngày</h2><p>Số liệu cập nhật từ toàn bộ công việc trong ngày.</p></div></div>{taskDay.loading ? <div className="summary-loading">Đang tải tổng quan…</div> : <SummaryCards summary={taskDay.summary} />}</section>
+    <section className="content-card" aria-labelledby="day-summary-title"><div className="section-heading"><h2 id="day-summary-title">Tổng quan ngày</h2></div>{taskDay.loading ? <div className="summary-loading">Đang tải tổng quan…</div> : <SummaryCards summary={taskDay.summary} />}</section>
   </div>
 }

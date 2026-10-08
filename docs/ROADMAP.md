@@ -39,9 +39,9 @@ Triển khai nhật ký riêng tư độc lập với công việc: ngày không
 - 4B — Giao diện viết, xem lại, xóa, bảo vệ bản nháp và xử lý xung đột version: đã triển khai, kiểm chứng và được người dùng duyệt.
 - 4C.0 — Thiết kế private object storage, vòng đời ảnh và kế hoạch kiểm thử: đã duyệt; hai bucket private development/test đã được người dùng tạo.
 - 4C.1 — Backend ảnh: adapter lưu trữ, metadata, quyền, cleanup/retry và suite tích hợp đã triển khai; 46/46 test PASS bằng DNS tạm trong tiến trình và đã được người dùng duyệt về backend. Development bình thường trên hotspot chưa xác nhận.
-- 4C.2 — Frontend ảnh: chọn/xem/xóa/chú thích và xử lý lỗi responsive: chưa bắt đầu.
+- 4C.2 — Frontend ảnh: chọn nhiều ảnh, preview/upload/retry, xem riêng tư, chú thích/xóa, journal version và guard điều hướng đã triển khai. Kiểm tra tĩnh và browser thật với MongoDB/R2 test đã PASS; người dùng đã thử trên máy tính và duyệt giao diện cùng lượt tinh gọn UI.
 
-Toàn bộ chặng 4C chưa hoàn tất cho đến khi 4C.2 được triển khai và nghiệm thu.
+Chặng 4C đã nghiệm thu trong phạm vi kỹ thuật và giao diện máy tính. Kiểm thử trên điện thoại thật và chất lượng cảm quan của ảnh chụp điện thoại chưa PASS; đây là checklist bắt buộc trước phát hành, không phải bằng chứng được suy ra từ kiểm thử mô phỏng.
 
 ## Chặng 5 — Hành trình
 
@@ -50,5 +50,11 @@ Triển khai timeline, khoảnh khắc nổi bật và giai đoạn cá nhân li
 ## Chặng 6 — Hoàn thiện V1
 
 Kiểm thử tổng thể, sao lưu, khôi phục, thùng rác và triển khai V1. Điều kiện nghiệm thu: checklist vận hành, bảo mật, backup/restore và smoke test production đều đạt.
+
+Checklist bắt buộc trước phát hành còn mở:
+
+- Kiểm thử DayTrail trên ít nhất một điện thoại thật: bố cục, vùng chạm, bàn phím, cuộn, hộp thoại và không tràn ngang.
+- Chụp hoặc chọn ảnh thật từ điện thoại, kiểm tra xoay ảnh, thumbnail, ảnh lớn, chú thích và chất lượng cảm quan sau khi xử lý WebP giới hạn 2.560 px.
+- Ghi thiết bị/trình duyệt và kết quả thực tế; không thay kiểm thử này bằng viewport mô phỏng trên máy tính.
 
 Hồ sơ/lời mở đầu cá nhân, video hồi tưởng, chia sẻ hành trình và AI nằm sau phạm vi V1, chưa được triển khai.

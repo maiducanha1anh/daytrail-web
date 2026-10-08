@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError } from '../../api'
 import type { GuardRegistrar } from '../../navigation'
+import { MediaManager, type MediaManagerHandle } from '../media/MediaManager'
 import { DialogFrame } from '../tasks/DialogFrame'
 import { formatLocalDate } from '../tasks/date'
 import { journalApi } from './api'
@@ -41,7 +42,10 @@ export function JournalEditor({ date, onUnauthorized, registerNavigationGuard }:
   const [conflict, setConflict] = useState<ConflictState>()
   const [conflictLoading, setConflictLoading] = useState(false)
   const [pendingAction, setPendingAction] = useState<(() => void) | undefined>()
+  const [mediaCount, setMediaCount] = useState(0)
+  const [mediaBusy, setMediaBusy] = useState(false)
   const journalRef = useRef<Journal | null | undefined>(undefined)
+  const mediaRef = useRef<MediaManagerHandle>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const loadControllerRef = useRef<AbortController | undefined>(undefined)
   const mutationControllerRef = useRef<AbortController | undefined>(undefined)
@@ -111,11 +115,15 @@ export function JournalEditor({ date, onUnauthorized, registerNavigationGuard }:
   }, [pendingAction])
 
   const requestAction = useCallback((next: () => void) => {
+    const continueThroughMedia = () => {
+      if (mediaRef.current) mediaRef.current.requestLeave(next)
+      else next()
+    }
     if (!dirty) {
-      next()
+      continueThroughMedia()
       return
     }
-    setPendingAction(() => next)
+    setPendingAction(() => continueThroughMedia)
   }, [dirty])
 
   useEffect(() => registerNavigationGuard(requestAction), [registerNavigationGuard, requestAction])
@@ -127,8 +135,8 @@ export function JournalEditor({ date, onUnauthorized, registerNavigationGuard }:
   }
 
   const saveDraft = useCallback(async () => {
-    if (busy || journal === undefined || conflict) return false
-    if (draft.trim().length === 0) {
+    if (busy || mediaBusy || journal === undefined || conflict) return false
+    if (draft.trim().length === 0 && mediaCount === 0) {
       setError(journal ? 'Nhật ký không thể chỉ có khoảng trắng. Hãy dùng Xóa nếu muốn xóa nhật ký.' : 'Hãy nhập nội dung trước khi lưu nhật ký.')
       textareaRef.current?.focus()
       return false
@@ -165,7 +173,23 @@ export function JournalEditor({ date, onUnauthorized, registerNavigationGuard }:
     } finally {
       if (!controller.signal.aborted) setBusy(undefined)
     }
-  }, [busy, conflict, date, draft, journal, onUnauthorized, replaceJournal])
+  }, [busy, conflict, date, draft, journal, mediaBusy, mediaCount, onUnauthorized, replaceJournal])
+
+  const acceptMediaVersion = useCallback((version: number | null) => {
+    const current = journalRef.current
+    if (version === null) {
+      replaceJournal(null)
+      return
+    }
+    const now = new Date().toISOString()
+    replaceJournal(current ? { ...current, updatedAt: now, version } : {
+      content: '',
+      createdAt: now,
+      date,
+      updatedAt: now,
+      version,
+    })
+  }, [date, replaceJournal])
 
   const saveThenContinue = useCallback(async () => {
     if (await saveDraft()) continuePending()
@@ -195,6 +219,7 @@ export function JournalEditor({ date, onUnauthorized, registerNavigationGuard }:
       setDraft('')
       setConflict(undefined)
       setNotice('Đã xóa nhật ký.')
+      window.setTimeout(() => mediaRef.current?.reload(), 0)
     } catch (caught) {
       if (controller.signal.aborted) return
       if (caught instanceof ApiError && caught.status === 401) {
@@ -222,6 +247,7 @@ export function JournalEditor({ date, onUnauthorized, registerNavigationGuard }:
       if (controller.signal.aborted) return
       replaceJournal(result.journal)
       setConflict((current) => current ? { ...current, latest: result.journal, latestLoaded: true } : current)
+      window.setTimeout(() => mediaRef.current?.reload(), 0)
     } catch (caught) {
       if (controller.signal.aborted) return
       if (caught instanceof ApiError && caught.status === 401) {
@@ -233,6 +259,27 @@ export function JournalEditor({ date, onUnauthorized, registerNavigationGuard }:
       if (!controller.signal.aborted) setConflictLoading(false)
     }
   }
+
+  const refreshJournalForMedia = useCallback(async (message: string) => {
+    conflictControllerRef.current?.abort()
+    const controller = new AbortController()
+    conflictControllerRef.current = controller
+    setConflictLoading(true)
+    try {
+      const result = await journalApi.get(date, controller.signal)
+      if (controller.signal.aborted) return undefined
+      replaceJournal(result.journal)
+      setConflict({ latest: result.journal, latestLoaded: true, message })
+      return result.journal?.version ?? null
+    } catch (caught) {
+      if (controller.signal.aborted) return undefined
+      if (caught instanceof ApiError && caught.status === 401) onUnauthorized('Phiên đăng nhập đã hết hạn. Bản nháp chưa được lưu.')
+      else setConflict((current) => ({ latest: current?.latest ?? journalRef.current ?? null, latestLoaded: false, loadError: journalErrorMessage(caught, 'load'), message }))
+      return undefined
+    } finally {
+      if (!controller.signal.aborted) setConflictLoading(false)
+    }
+  }, [date, onUnauthorized, replaceJournal])
 
   function useLatestVersion() {
     if (!conflict?.latestLoaded) return
@@ -251,11 +298,12 @@ export function JournalEditor({ date, onUnauthorized, registerNavigationGuard }:
     window.setTimeout(() => textareaRef.current?.focus(), 0)
   }
 
-  const statusText = loading ? 'Đang tải…' : busy === 'saving' ? 'Đang lưu…' : busy === 'deleting' ? 'Đang xóa…' : dirty ? 'Có thay đổi chưa lưu' : journal ? 'Đã lưu' : 'Chưa có nhật ký'
+  const statusText = loading ? 'Đang tải…' : busy === 'saving' ? 'Đang lưu…' : busy === 'deleting' ? 'Đang xóa…' : dirty ? 'Chưa lưu' : journal ? 'Đã lưu' : 'Chưa có nhật ký'
+  const showCharacterCount = draft.length >= CONTENT_MAX_LENGTH * 0.9
 
   return <section className="content-card journal-card" aria-labelledby={`journal-title-${date}`}>
     <div className="section-heading journal-heading">
-      <div><h2 id={`journal-title-${date}`}>Nhật ký ngày</h2><p>{formatLocalDate(date)} · Nhật ký độc lập với công việc trong ngày.</p></div>
+      <div><h2 id={`journal-title-${date}`}>Nhật ký</h2><p>{formatLocalDate(date)}</p></div>
       <span className={`journal-status${dirty ? ' is-dirty' : ''}`} aria-live="polite">{statusText}</span>
     </div>
     {loading && <div className="loading-panel compact" role="status">Đang tải nhật ký…</div>}
@@ -263,12 +311,22 @@ export function JournalEditor({ date, onUnauthorized, registerNavigationGuard }:
       <p>{error}</p><button className="secondary-button" type="button" onClick={() => void loadJournal()}>Thử lại</button>
     </div>}
     {!loading && journal !== undefined && <>
-      {!journal && !draft && <p className="journal-empty">Ngày này chưa có nhật ký. Bạn có thể bắt đầu viết ngay cả khi chưa có công việc.</p>}
+      {!journal && !draft && <p className="journal-empty">Chưa có nhật ký cho ngày này.</p>}
       <label className="field journal-field"><span>Nội dung nhật ký</span>
-        <textarea ref={textareaRef} value={draft} maxLength={CONTENT_MAX_LENGTH} rows={10} disabled={Boolean(busy)} placeholder="Viết lại điều bạn muốn ghi nhớ trong ngày…" onChange={(event) => { setDraft(event.target.value); setError(''); setNotice('') }} />
+        <textarea ref={textareaRef} value={draft} maxLength={CONTENT_MAX_LENGTH} rows={7} disabled={Boolean(busy)} placeholder="Viết lại điều bạn muốn ghi nhớ trong ngày…" onChange={(event) => { setDraft(event.target.value); setError(''); setNotice('') }} />
       </label>
-      <div className="journal-meta"><span>{draft.length.toLocaleString('vi-VN')} / {CONTENT_MAX_LENGTH.toLocaleString('vi-VN')} ký tự</span>{journal && <span>Phiên bản {journal.version}</span>}</div>
-      <p className="field-help">Nhật ký không tự lưu và không được lưu trong bộ nhớ trình duyệt. Nội dung chỉ có khoảng trắng sẽ không được lưu.</p>
+      {showCharacterCount && <div className="journal-meta"><span>{draft.length.toLocaleString('vi-VN')} / {CONTENT_MAX_LENGTH.toLocaleString('vi-VN')} ký tự</span></div>}
+      <MediaManager
+        ref={mediaRef}
+        owner={{ type: 'journal', date, journalVersion: journal?.version ?? null }}
+        disabled={Boolean(busy) || Boolean(conflict)}
+        onBusyChange={setMediaBusy}
+        onImageCountChange={setMediaCount}
+        onJournalConflict={startConflict}
+        onJournalRefresh={refreshJournalForMedia}
+        onJournalVersionChange={acceptMediaVersion}
+        onUnauthorized={onUnauthorized}
+      />
       {error && <p className="form-message error" role="alert">{error}</p>}
       {notice && <p className="form-message success" role="status">{notice}</p>}
       {conflict && <div className="journal-conflict" role="alert">
@@ -289,7 +347,7 @@ export function JournalEditor({ date, onUnauthorized, registerNavigationGuard }:
       </div>}
       <div className="journal-actions">
         {journal && <button className="danger-button" type="button" disabled={Boolean(busy)} onClick={requestDelete}>Xóa nhật ký</button>}
-        <button className="primary-button" type="button" disabled={Boolean(busy) || !dirty || Boolean(conflict)} onClick={() => void saveDraft()}>{busy === 'saving' ? 'Đang lưu…' : 'Lưu nhật ký'}</button>
+        <button className="primary-button" type="button" disabled={Boolean(busy) || mediaBusy || !dirty || Boolean(conflict)} onClick={() => void saveDraft()}>{busy === 'saving' ? 'Đang lưu…' : 'Lưu nhật ký'}</button>
       </div>
     </>}
     {pendingAction && <DialogFrame labelledBy="journal-unsaved-title" onClose={() => setPendingAction(undefined)}>

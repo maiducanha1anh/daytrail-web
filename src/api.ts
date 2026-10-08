@@ -62,6 +62,31 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}) {
   return body as T
 }
 
+export async function apiBlobRequest(path: string, signal?: AbortSignal) {
+  let response: Response
+  try {
+    response = await fetch(`${apiBase}${path}`, {
+      credentials: 'include',
+      headers: { Accept: 'image/webp' },
+      signal,
+    })
+  } catch (error: unknown) {
+    if (error instanceof Error && error.name === 'AbortError') throw error
+    throw new ApiError('Không thể kết nối đến máy chủ DayTrail.', undefined, 'network')
+  }
+
+  if (!response.ok) {
+    let body: ErrorResponse | undefined
+    try {
+      body = await response.json() as ErrorResponse
+    } catch {
+      body = undefined
+    }
+    throw new ApiError(body?.error ?? 'Máy chủ không thể tải ảnh.', response.status, 'http', body?.code)
+  }
+  return response.blob()
+}
+
 function jsonRequest<T>(path: string, body: Record<string, string>, signal?: AbortSignal) {
   return apiRequest<T>(path, {
     method: 'POST',

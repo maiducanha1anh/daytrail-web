@@ -427,3 +427,60 @@ Kết luận: chặng 2B đã được người dùng duyệt sau khi thử lạ
 - `npm run dev` bình thường trên hotspot, không có DNS preload, **chưa được xác nhận hoạt động**. Workaround DNS chỉ dùng cho kiểm thử; chưa hardcode hoặc đưa vào cấu hình ứng dụng.
 - Chất lượng cảm quan với ảnh chụp từ điện thoại thật chưa được kiểm chứng; sẽ kiểm tra ở 4C.2. Các số liệu WebP hiện tại chỉ đến từ mẫu kiểm tra trong bộ nhớ.
 - 4C.2 frontend ảnh chưa bắt đầu; toàn bộ chặng 4C chưa hoàn tất.
+
+## Chặng 4C.2 — Giao diện ảnh riêng tư
+
+### Đã triển khai
+
+- Thêm module dùng chung `features/media` cho chi tiết công việc và nhật ký: chọn nhiều ảnh, preview, hàng đợi giới hạn đồng thời, trạng thái từng ảnh, retry giữ nguyên `clientUploadId`, lưới thumbnail và xem ảnh đầy đủ qua API có cookie phiên.
+- Frontend kiểm tra sớm JPEG/PNG/WebP và 8 MiB; HEIC/HEIF được giải thích bằng tiếng Việt nhưng backend vẫn là nguồn kiểm tra cuối cùng. Không có khóa R2 hoặc URL public trong frontend.
+- Hỗ trợ sửa chú thích, xác nhận xóa, cleanup pending và thu hồi object URL. Không lưu ảnh, token hoặc bản nháp vào Local Storage/Session Storage.
+- Guard ảnh được nối sau guard note/journal: upload đang chạy, ảnh lỗi hoặc caption chưa lưu đều ngăn đóng bảng, đổi ngày/tab hoặc đăng xuất cho tới khi người dùng hoàn tất, bỏ thay đổi hoặc tiếp tục chỉnh.
+- Ảnh task gắn với đúng lần thực hiện. Journal cho phép chỉ có ảnh; mọi upload/caption/xóa đồng bộ `Journal.version`. Khi HTTP 409, caption và văn bản đang soạn được giữ; thao tác đọc dữ liệu mới không tự thay nội dung người dùng.
+- Giao diện có CSS responsive cho hàng đợi, thumbnail và trình xem lớn; dialog tiếp tục dùng focus/Escape của `DialogFrame`.
+
+### Kiểm chứng của Codex
+
+- Frontend `npm run typecheck`, `npm run lint`, `npm run build`: PASS sau thay đổi cuối.
+- Backend test riêng từng chạy tại `4018`, frontend test tại `5178`; server xác nhận database `daytrail_test`, bucket `daytrail-media-test` và prefix riêng dưới `daytrail/test/`. Không dừng server người dùng và không đổi `.env`.
+- Chrome thật đã PASS các bước trước khi Atlas gián đoạn: đăng ký/đăng nhập và reload khôi phục phiên; upload đồng thời 3 ảnh task; thumbnail/full/chú thích; offline chủ động rồi retry không sinh trùng; reload giữ ảnh; hoàn thành và chuyển ngày giữ ảnh; tài khoản thứ hai nhận 404 khi đọc ảnh; tạo journal chỉ-ảnh; lưu văn bản sau khi caption làm tăng version; hai tab tạo 409 và giữ nguyên caption draft; đọc version mới rồi lưu caption thành công.
+- Kiểm thử dùng ảnh canvas tổng hợp phong cảnh/chữ, không lấy ảnh cá nhân trên máy. Chất lượng cảm quan với ảnh điện thoại thật chưa kiểm chứng.
+
+### Lượt gián đoạn trước khi kiểm chứng hoàn tất
+
+- Trong các lượt Chrome, backend test nhiều lần ghi `MongoServerSelectionError`; có lúc `/ready` tự phục hồi 200, sau đó hai lần khởi động mới đều kết thúc bằng `DatabaseConnectionError`. SRV/TXT trước đó PASS; thử DNS preload tạm 1.1.1.1/8.8.8.8 chỉ trong tiến trình vẫn không mở được server. Chưa có bằng chứng đủ để kết luận nguyên nhân Atlas/network cụ thể.
+- Không tính PASS cho các bước sau điểm gián đoạn: lưu journal rỗng khi còn ảnh rồi xóa ảnh cuối, dừng chuỗi giữ lần có ảnh, responsive 360/390/1440 px, hồi quy đầy đủ và kiểm tra Console cuối lượt.
+- Dữ liệu marker `codex-4c2-*` và object dưới prefix test có thể còn từ các lượt bị ngắt. Cần kết nối lại `daytrail_test`/`daytrail-media-test` để dọn đúng marker; chưa dọn vì không được phép đoán kết quả khi database không kết nối.
+- Các blocker trên mô tả đúng trạng thái của lượt bị ngắt và không được tính PASS. Các lượt sau đã cleanup marker cũ rồi kiểm chứng lại như phần dưới.
+
+### Kiểm chứng hoàn tất của Codex
+
+- Node dùng DNS mặc định của tiến trình là `8.8.8.8` và `8.8.4.4`; SRV/TXT PASS, TCP 27017 và TLS 1.3 có xác minh chứng chỉ PASS trên cả ba node Atlas. Không dùng DNS preload trong lượt hoàn tất này. Một kết nối mới từng gặp server selection và một cleanup từng gặp `ETIMEOUT`, trong khi server test `/ready` vẫn 200; lần kế tiếp kết nối thành công. Chưa có bằng chứng để quy lỗi này riêng cho DNS.
+- Toàn bộ backend `npm test` chạy thật trên `daytrail_test`/`daytrail-media-test`: **46/46 PASS**, gồm 8 test media; không dùng API in-memory.
+- Chrome thật dùng backend `4018`, frontend `5178`, DevTools `9333`, marker riêng và prefix `daytrail/test/4c2-20261007180604`. PASS: xóa ảnh cuối của journal không chữ làm journal rỗng biến mất; lưu caption/reload; guard caption chưa lưu; guard upload đang chạy và **Hoàn tất và tiếp tục**; dừng chuỗi giữ đúng lần có ảnh; đăng nhập/khôi phục phiên; hồi quy task, journal và bốn chế độ Lịch.
+- Responsive PASS ở 1440, 390 và 360 px: `scrollWidth` bằng đúng viewport, dialog nằm trong màn hình và cuộn được. Focus khởi đầu, Tab và Escape trong trình xem ảnh PASS. Console error, runtime exception và network failure ngoài kiểm thử: 0.
+- Phát hiện và sửa hai lỗi thật: guard media dùng `void ?? next()` nên vẫn điều hướng khi có caption/upload chưa hoàn tất; thumbnail lỗi có nút retry lồng trong nút thumbnail gây HTML không hợp lệ và lỗi React Console.
+- Sau bản sửa cuối, frontend `npm run typecheck`, `npm run lint`, `npm run build`: PASS. Ảnh kiểm thử là canvas tổng hợp 1.200×800; Codex không lấy ảnh cá nhân trên máy.
+- Cleanup lượt cũ: 8 user, 6 session, 5 task, 2 journal, 10 media và 20 object được xác định chính xác rồi dọn về 0. Mỗi lượt browser sau đó cũng được dọn theo đúng email marker/prefix; kiểm tra cuối còn 0 user/session/task/series/journal/media và 0 object. Các cổng `4018`, `5178`, `9333` đã trống và file tạm đã xóa.
+
+### Trạng thái
+
+- **Chặng 4C.2 đã được người dùng duyệt sau khi thử giao diện hiện tại trên máy tính.** Kết quả này cùng bằng chứng kỹ thuật của Codex chốt phạm vi 4C.2 và lượt tinh gọn UI.
+- Kiểm thử trên điện thoại thật và chất lượng cảm quan bằng ảnh chụp điện thoại vẫn **chưa kiểm chứng**; kết quả không được suy ra từ ảnh canvas tổng hợp hoặc viewport mô phỏng. Hai mục này được chuyển vào checklist bắt buộc trước phát hành.
+
+### Tinh chỉnh UI/UX sau kiểm chứng 4C.2 — Codex
+
+- Rút gọn màn hình sau đăng nhập để công việc, nhật ký và ảnh xuất hiện sớm hơn. Đã bỏ khối giới thiệu lặp, các mô tả kỹ thuật thường trực trong Hôm nay/Lịch/Nhật ký/Ảnh và thông tin version khỏi giao diện người dùng.
+- Nhật ký chỉ hiện bộ đếm từ 18.000/20.000 ký tự, vẫn giữ trạng thái `Chưa lưu`, bảo vệ bản nháp và xử lý xung đột version. Khu vực ảnh chỉ còn tiêu đề `Ảnh`, nút `Thêm ảnh`, số lượng và lưới; ảnh upload thành công rời hàng đợi ngay, thông báo cho trình đọc màn hình vẫn được giữ.
+- Tăng vùng chạm thao tác công việc lên 44 px trên mobile, cho tên dài và nút tự xuống dòng, làm rõ nút xóa. Dialog bắt Escape ở cấp document khi đang mở và khôi phục focus khi đóng; sửa lỗi Escape không hoạt động sau khi nút lưu chú thích bị disable làm focus rơi về `body`.
+- Sửa breakpoint Lịch cho tablet: trước sửa, thanh điều khiển làm trang rộng 1.008 px ở viewport 768 px; sau sửa, cả Năm/Tháng/Tuần/Ngày không còn tràn ngang ở 360, 390, 768 và 1.440 px.
+- Frontend `npm run typecheck`, `npm run lint`, `npm run build`: PASS sau thay đổi cuối.
+- Chrome thật dùng backend/frontend kiểm thử riêng tại `4019`/`5179`, database `daytrail_test` và bucket `daytrail-media-test`. PASS: 6 công việc gồm tên dài; 18 nút thao tác đều cao 44 px ở 390 px; upload hỗn hợp giữ file hợp lệ và báo lỗi file sai; upload thành công không để hàng/thông báo thành công nhìn thấy; retry thành công; caption còn sau reload; guard upload/caption hoạt động; bộ đếm nhật ký ẩn ở 17.999 và hiện ở 18.000 ký tự; bốn chế độ Lịch không tràn ở bốn kích thước. Runtime exception: 0; các request `ERR_ABORTED` do chủ động đổi nhanh chế độ/reload và một lỗi upload do chủ động chặn để kiểm tra retry không được tính là lỗi ngoài dự kiến.
+- Cleanup đã xác nhận đúng `daytrail_test` và `daytrail-media-test`: xóa 2 user, 2 session, 6 task, 1 journal, 3 media cùng object trong prefix riêng; còn 0 user/session/task/series/journal/media/object. Các cổng kiểm thử `4019`, `5179`, `9334` đã trống và file tạm đã xóa; server người dùng `4000`/`5173` không bị dừng.
+- Người dùng đã thử giao diện hiện tại trên máy tính và duyệt chặng 4C.2 cùng lượt tinh gọn UI. Chất lượng cảm quan với ảnh điện thoại thật và thao tác trên thiết bị thật vẫn **chưa kiểm chứng**; đây là mục bắt buộc trước phát hành. Tại thời điểm cập nhật dòng này, thay đổi chưa commit/push/deploy và Hành trình chưa bắt đầu.
+
+### Checklist bắt buộc trước phát hành
+
+- Thử trên ít nhất một điện thoại thật: đăng nhập, Hôm nay, bốn chế độ Lịch, task, journal, ảnh, các hộp thoại, bàn phím và cuộn; xác nhận không tràn ngang và vùng chạm sử dụng được.
+- Dùng ảnh chụp thật từ điện thoại để kiểm tra xoay ảnh, thumbnail, xem lớn, chú thích và chất lượng cảm quan sau WebP tối đa 2.560 px.
+- Ghi rõ thiết bị, trình duyệt và kết quả. Hiện cả hai mục trên là **CHƯA KIỂM TRA**, không phải PASS.

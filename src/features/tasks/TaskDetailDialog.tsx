@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError } from '../../api'
+import { MediaManager, type MediaManagerHandle } from '../media/MediaManager'
 import type { GuardRegistrar } from '../../navigation'
 import { taskApi } from './api'
 import { formatLocalDate, parseLocalDate, todayKey } from './date'
@@ -35,6 +36,7 @@ export function TaskDetailDialog({ onClose, onSeriesChanged, onTaskChanged, onUn
   const controllerRef = useRef<AbortController | undefined>(undefined)
   const seriesControllerRef = useRef<AbortController | undefined>(undefined)
   const stopControllerRef = useRef<AbortController | undefined>(undefined)
+  const mediaRef = useRef<MediaManagerHandle>(null)
   const dirty = note !== (currentTask.note ?? '')
 
   useEffect(() => () => {
@@ -80,8 +82,12 @@ export function TaskDetailDialog({ onClose, onSeriesChanged, onTaskChanged, onUn
   }, [dirty])
 
   const requestAction = useCallback((action: () => void) => {
-    if (dirty) setPendingAction(() => action)
-    else action()
+    const continueThroughMedia = () => {
+      if (mediaRef.current) mediaRef.current.requestLeave(action)
+      else action()
+    }
+    if (dirty) setPendingAction(() => continueThroughMedia)
+    else continueThroughMedia()
   }, [dirty])
 
   useEffect(() => registerNavigationGuard?.(requestAction), [registerNavigationGuard, requestAction])
@@ -249,6 +255,8 @@ export function TaskDetailDialog({ onClose, onSeriesChanged, onTaskChanged, onUn
       <div className="note-meta"><span>{note.length}/5.000 ký tự</span><button className="secondary-button" type="button" onClick={handleSaveNote} disabled={busy || stopping || !dirty}>{busy ? 'Đang xử lý…' : 'Lưu note'}</button></div>
     </section>
 
+    <MediaManager ref={mediaRef} owner={{ type: 'task', taskId: currentTask.id }} onUnauthorized={onUnauthorized} disabled={stopping} />
+
     {error && <div className="form-message error" role="alert">{error}</div>}
     {notice && <div className="form-message success" role="status">{notice}</div>}
 
@@ -260,7 +268,7 @@ export function TaskDetailDialog({ onClose, onSeriesChanged, onTaskChanged, onUn
 
     {stopOpen && series && <div className="stop-series-prompt" role="alertdialog" aria-labelledby="stop-series-title">
       <h3 id="stop-series-title">Dừng chuỗi lặp</h3>
-      <p>Từ ngày đã chọn, các lần chưa hoàn thành và chưa có ghi chú sẽ được bỏ khỏi lịch. Những lần đã hoàn thành hoặc có ghi chú được giữ lại.</p>
+      <p>Từ ngày đã chọn, các lần chưa hoàn thành, chưa có ghi chú và chưa có ảnh sẽ được bỏ khỏi lịch. Những lần đã hoàn thành, có ghi chú hoặc có ảnh được giữ lại.</p>
       {currentTask.recurrence && currentTask.date !== currentTask.recurrence.originalDate && <p className="series-moved-note">Công việc đang mở đã được chuyển ngày. Việc dừng vẫn xét theo ngày dự kiến ban đầu là {formatLocalDate(currentTask.recurrence.originalDate)}.</p>}
       <div className="field">
         <label htmlFor="stop-series-date">Dừng từ ngày</label>
