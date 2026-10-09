@@ -43,9 +43,16 @@ Triển khai nhật ký riêng tư độc lập với công việc: ngày không
 
 Chặng 4C đã nghiệm thu trong phạm vi kỹ thuật và giao diện máy tính. Kiểm thử trên điện thoại thật và chất lượng cảm quan của ảnh chụp điện thoại chưa PASS; đây là checklist bắt buộc trước phát hành, không phải bằng chứng được suy ra từ kiểm thử mô phỏng.
 
-## Chặng 5 — Hành trình
+## Chặng 5 — Hành trình (đã nghiệm thu)
 
-Triển khai timeline, khoảnh khắc nổi bật và giai đoạn cá nhân liên kết dữ liệu gốc. Điều kiện nghiệm thu: điều hướng thời gian và liên kết dữ liệu đúng trên desktop/mobile.
+Thiết kế lại Hành trình thành Album ký ức chỉ dùng nhật ký cùng ảnh/chú thích nhật ký từ dữ liệu gốc. Điều kiện nghiệm thu: không lẫn dữ liệu task; lựa chọn nội dung/bìa ổn định; điều hướng Năm/Tháng/Tuần/Ngày, phân trang và giai đoạn hoạt động đúng trên desktop/mobile.
+
+Đã triển khai, kiểm chứng kỹ thuật và được người dùng thử/duyệt trên máy tính:
+
+- Năm có tối đa 12 thẻ tháng; Tháng có bìa/đoạn trích, tối đa 6 ngày xem trước và danh sách phân trang; Tuần/Ngày có bố cục riêng. Mặc định mở tháng hiện tại.
+- Highlight chỉ áp dụng cho nhật ký. Album tháng có tiêu đề tùy chọn và bìa thủ công/tự động chỉ từ ảnh nhật ký hợp lệ; xóa nguồn dùng fallback an toàn.
+- CRUD giai đoạn gồm tên, khoảng ngày, bìa nhật ký, lời giới thiệu và tổng kết. Nội dung giai đoạn phân trang, kể cả khoảng dài hơn 366 ngày; xóa giai đoạn không xóa dữ liệu gốc.
+- Backend `typecheck`/`lint`/`build` và 54/54 test PASS. Browser test riêng đã kiểm tra 1.440/768/390/360 px, không tràn ngang và không tải ảnh full ở trang Năm. Kiểm thử điện thoại thật vẫn nằm trong checklist trước phát hành.
 
 ## Chặng 6 — Hoàn thiện V1
 

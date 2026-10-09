@@ -42,15 +42,17 @@ function shiftForView(view: CalendarView, selectedDate: string, direction: -1 | 
   return addDays(selectedDate, direction)
 }
 
-export function CalendarPage({ onUnauthorized, registerNavigationGuard, requestNavigation }: {
+export function CalendarPage({ initialJournalDate, onUnauthorized, registerNavigationGuard, requestNavigation }: {
+  initialJournalDate?: string
   onUnauthorized: () => void
   registerNavigationGuard: GuardRegistrar
   requestNavigation: (next: () => void) => void
 }) {
   const today = todayKey()
-  const initialDate = parseLocalDate(today) ?? new Date()
-  const [selectedDate, setSelectedDate] = useState(today)
-  const [view, setView] = useState<CalendarView>('month')
+  const firstDate = initialJournalDate && parseLocalDate(initialJournalDate) ? initialJournalDate : today
+  const initialDate = parseLocalDate(firstDate) ?? new Date()
+  const [selectedDate, setSelectedDate] = useState(firstDate)
+  const [view, setView] = useState<CalendarView>(initialJournalDate ? 'day' : 'month')
   const [miniMonth, setMiniMonth] = useState({ year: initialDate.getFullYear(), month: initialDate.getMonth() })
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [creating, setCreating] = useState(false)

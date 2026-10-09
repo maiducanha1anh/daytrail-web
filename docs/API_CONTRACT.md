@@ -476,6 +476,48 @@ Xóa task hoặc journal có ảnh có thể trả HTTP 200/202 cùng trạng th
 
 Thiếu cấu hình hoặc R2 gián đoạn trả HTTP 503, mã `MEDIA_STORAGE_UNAVAILABLE` và `Retry-After: 5`. Việc này không phải phiên hết hạn và không ảnh hưởng endpoint auth/task/journal không dùng storage. Quá nhiều upload đang xử lý trả HTTP 429. MongoDB gián đoạn vẫn dùng lỗi `DATABASE_UNAVAILABLE` bên dưới.
 
+## Hành trình
+
+Mọi endpoint `/api/journey/*` yêu cầu phiên hợp lệ, chỉ đọc/ghi dữ liệu của user hiện tại và giữ hành vi HTTP 401/503 chung. Các thao tác ghi yêu cầu JSON cùng Origin hợp lệ. Hành trình chỉ trả nhật ký cùng ảnh/chú thích nhật ký; không trả task, note task hoặc ảnh task.
+
+### Album năm và tháng
+
+- `GET /api/journey/year/:year`: trả đúng 12 phần tử `months` theo thứ tự lịch. Mỗi tháng chỉ có metadata gọn gồm `title`, `customTitle`, số ngày/ảnh, đoạn trích ngắn và tối đa một ảnh bìa thumbnail; không tải nội dung đầy đủ hoặc ảnh full của cả năm.
+- `GET /api/journey/month/:year/:month`: trả `album` và tối đa 6 `previewDays`. Ngày nổi bật được ưu tiên; phần còn lại được phân bố ổn định theo thời gian rồi toàn bộ được sắp tăng dần.
+- `PUT /api/journey/albums/:year/:month`: cập nhật `{ "title": "Mùa thu", "coverImageId": null }`. `title` tùy chọn, tối đa 100 ký tự; `coverImageId=null` dùng bìa tự động. Ảnh thủ công phải là ảnh journal ready, thuộc user hiện tại và nằm đúng tháng. Response giống endpoint tháng.
+
+Album tự động ưu tiên ảnh của nhật ký nổi bật, sau đó ảnh nhật ký đầu tiên theo thứ tự ổn định. Nếu không có ảnh, client dùng đoạn trích nhật ký; không tạo ảnh giả. Metadata album có unique index `userId + year + month`. Xóa ảnh/journal nguồn không làm treo bìa hoặc đoạn trích: tham chiếu thủ công được dọn và response quay về fallback hợp lệ.
+
+### Ngày trong Album
+
+- `GET /api/journey/days?from=2026-10-01&to=2026-10-31&page=1&limit=20`: trả các ngày có journal hoặc ảnh, sắp ngày tăng dần và phân trang. Khoảng tối đa 366 ngày; `limit` mặc định 20, tối đa 50.
+- `GET /api/journey/days/:date`: trả đầy đủ nội dung journal, version, highlight và ảnh/chú thích của ngày; ngày trống trả `{ "date", "entry": null }`.
+- `GET /api/journey/covers?from=2026-10-01&to=2026-10-31&page=1&limit=20`: trả bộ chọn ảnh bìa phân trang, chỉ gồm ảnh journal ready của user trong khoảng. Endpoint này cho phép khoảng dài để dùng cho giai đoạn.
+
+Mỗi thẻ ngày gọn có `journalId`, `date`, `excerpt`, `imageCount`, tối đa ba thumbnail `images` và `highlight`. Ảnh chỉ chứa metadata cùng URL API có session; không trả object key, `userId` hoặc bí mật R2. Ngày/query sai, `to < from`, khoảng danh sách ngày quá 366 ngày, `page`/`limit` sai hoặc field lạ trả HTTP 400.
+
+### Khoảnh khắc nổi bật
+
+`POST /api/journey/highlights`:
+
+```json
+{ "sourceType": "journal", "sourceId": "507f1f77bcf86cd799439011" }
+```
+
+HTTP 201 khi tạo, HTTP 200 khi gửi lại cùng journal (idempotent). `sourceType` khác `journal` trả 400; nguồn không tồn tại hoặc thuộc tài khoản khác trả 404. Response trả `{ "highlight": { "id", "sourceType", "sourceId", "createdAt" } }`. Highlight task cũ không được trả trong Album mới và không bị xóa hàng loạt.
+
+`DELETE /api/journey/highlights/:highlightId` trả 204. ID không hợp lệ trả 400; highlight không tồn tại/khác chủ trả 404. Xóa journal gốc cũng dọn highlight trong transaction.
+
+### Giai đoạn cá nhân
+
+- `GET /api/journey/phases`: trả tối đa 100 giai đoạn, mới nhất theo ngày bắt đầu trước.
+- `GET /api/journey/phases/:phaseId/days?page=1&limit=20`: trả các ngày journal thuộc giai đoạn theo trang. Endpoint không áp giới hạn 366 ngày cho toàn giai đoạn và không tải toàn bộ một lần.
+- `POST /api/journey/phases`: tạo và trả HTTP 201.
+- `PATCH /api/journey/phases/:phaseId`: sửa các trường được phép và trả HTTP 200.
+- `DELETE /api/journey/phases/:phaseId`: xóa giai đoạn, trả HTTP 204; journal/ảnh gốc không bị xóa.
+
+Body tạo gồm `name` (1–120 ký tự), `startDate`, `endDate`, `coverImageId` (`null` hoặc ID ảnh journal private đã có), `introduction` (tối đa 2.000 ký tự) và `summary` (tối đa 5.000 ký tự). `endDate` không trước `startDate`. Backend xác nhận bìa là ảnh journal ready, thuộc user hiện tại và nằm trong khoảng giai đoạn; ảnh task, ngoài khoảng hoặc khác chủ trả 400. Xóa trực tiếp ảnh bìa hoặc journal chứa ảnh đó đặt `coverImageId` về `null` mà không xóa dữ liệu nguồn khác.
+
 ## Database tạm thời không sẵn sàng
 
 Endpoint cần MongoDB trả HTTP 503 khi kết nối database bị gián đoạn:

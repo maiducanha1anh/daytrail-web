@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { AuthPanel } from './AuthPanel'
 import { ApiError, dayTrailApi, type DayTrailUser } from './api'
 import { CalendarPage } from './features/calendar/CalendarPage'
+import { JourneyPage } from './features/journey/JourneyPage'
 import type { GuardRegistrar, NavigationGuard } from './navigation'
 import { TodayPage } from './features/today/TodayPage'
 
@@ -14,6 +15,12 @@ type SessionState =
   | { status: 'authenticated'; user: DayTrailUser }
 
 const sections: Section[] = ['Hôm nay', 'Lịch', 'Hành trình']
+
+function initialSection(): Section {
+  if (window.location.hash.startsWith('#journey')) return 'Hành trình'
+  if (window.location.hash.startsWith('#calendar')) return 'Lịch'
+  return 'Hôm nay'
+}
 
 function HealthBadge() {
   const [health, setHealth] = useState<HealthState>('checking')
@@ -98,10 +105,6 @@ function GuestView({ message, onAuthenticated }: { message?: string; onAuthentic
   </main>
 }
 
-function JourneyPlaceholder() {
-  return <section className="content-card journey-placeholder"><div className="card-icon" aria-hidden="true">✦</div><h1>Hành trình đang được chuẩn bị</h1><p>Timeline, khoảnh khắc nổi bật và các giai đoạn cá nhân sẽ được triển khai ở chặng sau.</p><span className="future-badge">Chưa triển khai</span></section>
-}
-
 function AuthenticatedView({ user, onLogout, onSessionExpired, logoutError, loggingOut }: {
   user: DayTrailUser
   onLogout: () => void
@@ -109,7 +112,8 @@ function AuthenticatedView({ user, onLogout, onSessionExpired, logoutError, logg
   logoutError?: string
   loggingOut: boolean
 }) {
-  const [section, setSection] = useState<Section>('Hôm nay')
+  const [section, setSection] = useState<Section>(() => initialSection())
+  const [calendarJournalTarget, setCalendarJournalTarget] = useState<{ date: string; key: number }>()
   const navigationGuardsRef = useRef(new Set<NavigationGuard>())
 
   const registerNavigationGuard: GuardRegistrar = useCallback((guard) => {
@@ -131,7 +135,17 @@ function AuthenticatedView({ user, onLogout, onSessionExpired, logoutError, logg
 
   function selectSection(nextSection: Section) {
     if (nextSection === section) return
-    requestNavigation(() => setSection(nextSection))
+    requestNavigation(() => {
+      if (nextSection === 'Lịch') setCalendarJournalTarget(undefined)
+      setSection(nextSection)
+    })
+  }
+
+  function openJournalFromJourney(date: string) {
+    requestNavigation(() => {
+      setCalendarJournalTarget({ date, key: Date.now() })
+      setSection('Lịch')
+    })
   }
 
   return <main className="app product-app">
@@ -142,8 +156,8 @@ function AuthenticatedView({ user, onLogout, onSessionExpired, logoutError, logg
     {logoutError && <div className="form-message error logout-error" role="alert">{logoutError}</div>}
     <nav className="tabs" aria-label="Điều hướng chính">{sections.map((item) => <button key={item} type="button" className={section === item ? 'active' : ''} onClick={() => selectSection(item)} aria-current={section === item ? 'page' : undefined}>{item}</button>)}</nav>
     {section === 'Hôm nay' && <TodayPage onOpenCalendar={() => selectSection('Lịch')} onUnauthorized={onSessionExpired} registerNavigationGuard={registerNavigationGuard} />}
-    {section === 'Lịch' && <CalendarPage onUnauthorized={onSessionExpired} registerNavigationGuard={registerNavigationGuard} requestNavigation={requestNavigation} />}
-    {section === 'Hành trình' && <JourneyPlaceholder />}
+    {section === 'Lịch' && <CalendarPage key={calendarJournalTarget?.key ?? 'calendar'} initialJournalDate={calendarJournalTarget?.date} onUnauthorized={onSessionExpired} registerNavigationGuard={registerNavigationGuard} requestNavigation={requestNavigation} />}
+    {section === 'Hành trình' && <JourneyPage onEditJournal={openJournalFromJourney} onUnauthorized={onSessionExpired} registerNavigationGuard={registerNavigationGuard} />}
     <Footer />
   </main>
 }

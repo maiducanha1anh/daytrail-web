@@ -1,6 +1,6 @@
 # DayTrail Web
 
-Frontend React + TypeScript + Vite của DayTrail. **Hôm nay** có công việc, nhật ký văn bản và tổng quan ngày. **Lịch** có bốn chế độ Năm/Tháng/Tuần/Ngày, giao diện công việc lặp và nhật ký ở chế độ Ngày. Ảnh và **Hành trình** chưa được triển khai.
+Frontend React + TypeScript + Vite của DayTrail. **Hôm nay** có công việc, nhật ký, ảnh private và tổng quan ngày. **Lịch** có bốn chế độ Năm/Tháng/Tuần/Ngày cùng công việc lặp. **Hành trình** là Album ký ức chỉ dùng nhật ký cùng ảnh/chú thích nhật ký; người dùng đã thử và duyệt trên máy tính.
 
 ## Chạy trên Windows
 
@@ -53,6 +53,8 @@ Kết quả kiểm chứng chặng 3A: Codex chạy `typecheck`, `lint`, `build`
 Kết quả kiểm chứng chặng 3B.2: frontend `typecheck`, `lint`, `build` PASS. Chrome headless dùng backend/frontend riêng tại 4015/5176 và `daytrail_test`: tạo một lần, lặp ngày/tuần/tháng, ngày 31, thao tác một lần, dừng từ lần đã chuyển ngày, bảo vệ note khi HTTP 503, reload không sinh trùng và responsive 360/390/1440 px đều PASS; runtime exception có 0. Dữ liệu và tiến trình test đã được dọn.
 
 Kết quả nghiệm thu chặng 4B: frontend `typecheck`, `lint`, `build` PASS. Codex đã kiểm tra Chrome headless với backend riêng cổng `4017`, frontend riêng cổng `5177` và database thật `daytrail_test`: tạo/đọc/sửa/reload/xóa, đồng bộ Hôm nay–Lịch, bảo vệ ba lựa chọn bản nháp, xung đột hai tab, 401, cách ly tài khoản, HTTP 503/lỗi mạng, hồi quy công việc/công việc lặp và responsive 360/390/1440 px đều PASS; runtime exception có 0. Người dùng đã thử giao diện và duyệt; thay đổi đã push. Backend ảnh riêng tư 4C.1 đã được duyệt. Giao diện ảnh 4C.2 đã đạt kiểm chứng kỹ thuật với MongoDB/R2 thật trên môi trường test, frontend `typecheck`/`lint`/`build` PASS và backend 46/46 test PASS. Người dùng đã thử trên máy tính và duyệt giao diện 4C.2 cùng lượt tinh gọn UI. Kiểm thử trên điện thoại thật và chất lượng cảm quan của ảnh chụp điện thoại vẫn chưa được thực hiện, là mục bắt buộc trước phát hành.
+
+Kết quả kỹ thuật chặng 5 Album ký ức: frontend/backend `typecheck`, `lint`, `build` PASS; toàn bộ backend test **54/54 PASS**. Chrome headless dùng backend/frontend riêng `4022`/`5182`, `daytrail_test` và `daytrail-media-test`: Năm/Tháng/Tuần/Ngày, highlight journal, tiêu đề/bìa tháng, danh sách phân trang, giai đoạn và responsive 1440/768/390/360 px PASS. Trang Năm không tải ảnh full, task không rò vào Album và sau đăng nhập không có lỗi Console/runtime/Network. Đây là viewport mô phỏng, không thay checklist điện thoại thật trước phát hành.
 
 ## Kiểm tra thủ công luồng tài khoản và công việc
 

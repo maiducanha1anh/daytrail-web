@@ -302,9 +302,81 @@ footer { margin-top: auto; padding-top: 48px; color: #8b9991; font-size: 12px; }
 .stop-series-prompt > p { margin: 0 0 14px; color: #715f5b; line-height: 1.55; }
 .stop-series-prompt .field { margin: 14px 0; }
 .collection-notice, .page-notice { margin-bottom: 14px; }
-.journey-placeholder { margin-top: 26px; min-height: 340px; display: grid; align-content: center; justify-items: center; text-align: center; }
-.journey-placeholder h1 { margin: 14px 0 6px; }
-.journey-placeholder p { max-width: 540px; color: #6a7971; }
+.journey-page { min-width: 0; display: grid; gap: 18px; padding-top: 20px; }
+.journey-heading { display: flex; align-items: end; justify-content: space-between; gap: 18px; }
+.journey-heading h1 { margin: 2px 0 0; color: #203d31; font-size: clamp(28px, 4vw, 40px); }
+.journey-controls { display: grid; grid-template-columns: auto minmax(240px, 1fr) auto; align-items: center; gap: 14px; padding: 14px; }
+.memory-year-grid { min-width: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.memory-month-card { min-width: 0; overflow: hidden; border: 1px solid #dce7de; border-radius: 20px; padding: 0; background: #fff; box-shadow: 0 10px 30px rgba(33, 68, 49, .05); color: #294439; text-align: left; cursor: pointer; }
+.memory-month-card:focus-visible, .memory-day-main:focus-visible, .phase-card-main:focus-visible { outline: 3px solid rgba(139, 198, 63, .5); outline-offset: 3px; }
+.memory-month-card.is-empty { box-shadow: none; background: #f8faf8; }
+.memory-cover-image, .memory-cover-empty, .memory-cover-quote { width: 100%; aspect-ratio: 4 / 3; display: grid; margin: 0; }
+.memory-cover-image { object-fit: cover; }
+.memory-cover-empty { place-items: center; color: #98a79e; background: linear-gradient(145deg, #eef5ef, #f8faf5); font-size: 28px; }
+.memory-cover-quote { align-content: center; overflow: hidden; padding: 18px; color: #496056; background: #f3f7ef; font-family: Georgia, serif; font-size: 13px; line-height: 1.55; }
+.memory-month-copy { display: grid; gap: 6px; padding: 14px; }
+.memory-month-copy strong { font-size: 16px; }
+.memory-month-copy span { overflow: hidden; color: #718078; font-size: 12px; line-height: 1.5; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.memory-month-view { min-width: 0; display: grid; gap: 18px; }
+.memory-album-hero { min-width: 0; display: grid; grid-template-columns: minmax(220px, 38%) minmax(0, 1fr); gap: 24px; padding: 20px; }
+.memory-hero-cover { min-width: 0; overflow: hidden; border-radius: 16px; background: #edf3ee; }
+.memory-hero-copy { min-width: 0; display: grid; align-content: center; justify-items: start; gap: 11px; }
+.memory-hero-copy h2 { margin: 0; color: #254438; font-size: clamp(26px, 4vw, 42px); overflow-wrap: anywhere; }
+.memory-excerpt { display: grid; gap: 8px; border: 0; padding: 0; color: #425b50; background: transparent; text-align: left; cursor: pointer; }
+.memory-excerpt q { font-family: Georgia, serif; font-size: 15px; line-height: 1.7; }
+.memory-excerpt span { color: #7b8a82; font-size: 11px; }
+.memory-day-grid { min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.memory-week-list { min-width: 0; display: grid; gap: 14px; }
+.memory-week-list .memory-day-card { grid-template-columns: minmax(220px, 1fr) minmax(220px, 36%); }
+.memory-day-card { min-width: 0; display: grid; overflow: hidden; border: 1px solid #dfe8e1; border-radius: 18px; background: #fff; box-shadow: 0 8px 24px rgba(25, 66, 44, .04); }
+.memory-day-card.is-highlight { border-color: #e0c76c; box-shadow: 0 9px 26px rgba(151, 115, 15, .09); }
+.memory-day-main { min-width: 0; display: grid; align-content: start; gap: 8px; min-height: 126px; border: 0; padding: 16px; color: #3d554a; background: transparent; text-align: left; cursor: pointer; }
+.memory-day-date { color: #294b3c; font-weight: 800; text-transform: capitalize; }
+.memory-featured-label { color: #82670c; font-size: 11px; font-weight: 800; }
+.memory-day-main p { overflow: hidden; margin: 0; font-size: 12px; line-height: 1.65; white-space: pre-wrap; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.memory-thumbnails { min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; padding: 0 3px 3px; }
+.memory-thumbnails button { position: relative; min-width: 0; overflow: hidden; border: 0; border-radius: 8px; padding: 0; background: #edf2ee; cursor: pointer; }
+.memory-thumbnails img, .memory-thumbnails .private-image-state { width: 100%; aspect-ratio: 1; display: grid; object-fit: cover; font-size: 9px; }
+.memory-more-images { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; background: rgba(22, 43, 33, .62); font-size: 18px; font-weight: 850; }
+.memory-all-days { display: grid; gap: 16px; padding: 18px; }
+.memory-day-detail { min-width: 0; display: grid; gap: 18px; padding: clamp(18px, 4vw, 34px); }
+.memory-day-detail.is-highlight { border-color: #dfc76d; }
+.memory-journal-content { max-width: 74ch; color: #354e42; font-family: Georgia, serif; font-size: clamp(15px, 2vw, 18px); line-height: 1.85; white-space: pre-wrap; overflow-wrap: anywhere; }
+.memory-day-images { min-width: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; }
+.memory-day-images figure { min-width: 0; margin: 0; }
+.memory-day-images button { width: 100%; overflow: hidden; border: 0; border-radius: 14px; padding: 0; background: #edf2ed; cursor: pointer; }
+.memory-day-images img, .memory-day-images .private-image-state { width: 100%; aspect-ratio: 4 / 3; display: grid; object-fit: cover; }
+.memory-day-images figcaption { padding: 7px 3px; color: #627269; font-size: 11px; line-height: 1.5; }
+.highlight-button { flex: 0 0 auto; min-height: 40px; border: 1px solid #d7e2d9; border-radius: 11px; padding: 8px 11px; color: #627269; background: #f8faf8; font-weight: 750; cursor: pointer; }
+.memory-day-detail.is-highlight .highlight-button { border-color: #e2c967; color: #745c0b; background: #fff9dc; }
+.memory-phases { min-width: 0; display: grid; gap: 18px; padding: 20px; }
+.phase-card-grid { min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.phase-card { min-width: 0; overflow: hidden; border: 1px solid #dce7de; border-radius: 17px; background: #fbfdfb; }
+.phase-card-cover { width: 100%; border: 0; padding: 0; background: #edf3ee; cursor: pointer; }
+.phase-card-cover img, .phase-card-cover .private-image-state { width: 100%; aspect-ratio: 16 / 8; display: grid; object-fit: cover; }
+.phase-card-main { width: 100%; min-height: 120px; display: grid; align-content: start; gap: 6px; border: 0; padding: 15px; color: #29483a; background: transparent; text-align: left; cursor: pointer; }
+.phase-card-main h3 { margin: 0; font-size: 17px; }
+.phase-card-main span { color: #718078; font-size: 11px; }
+.phase-card-main p { overflow: hidden; margin: 4px 0 0; color: #52685d; font-size: 12px; line-height: 1.55; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.phase-card .inline-actions { padding: 0 15px 14px; }
+.phase-detail { min-width: 0; display: grid; gap: 14px; }
+.phase-detail h3 { margin: 0; color: #29483a; font-size: 26px; }
+.phase-detail blockquote { margin: 0; padding: 14px 16px; border-left: 3px solid #acd85f; color: #496056; background: #f5f8f1; white-space: pre-wrap; }
+.inline-actions { display: flex; gap: 12px; margin-top: 10px; }
+.inline-actions button { min-height: 38px; border: 0; padding: 6px 0; color: #476257; background: transparent; font-weight: 750; cursor: pointer; }
+.memory-cover-picker { min-width: 0; display: grid; gap: 12px; border: 1px solid #dfe8e1; border-radius: 14px; padding: 14px; }
+.memory-cover-picker legend { padding: 0 5px; color: #355246; font-weight: 800; }
+.memory-cover-option { display: flex; align-items: center; gap: 9px; min-height: 44px; border: 1px solid #dfe7e0; border-radius: 11px; padding: 9px 11px; cursor: pointer; }
+.memory-cover-option.selected, .memory-cover-options label.selected { border-color: #8fc34d; background: #f4faec; }
+.memory-cover-options { min-width: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
+.memory-cover-options label { position: relative; min-width: 0; overflow: hidden; border: 2px solid transparent; border-radius: 11px; background: #eef3ef; cursor: pointer; }
+.memory-cover-options input { position: absolute; top: 7px; left: 7px; z-index: 1; }
+.memory-cover-options img, .memory-cover-options .private-image-state { width: 100%; aspect-ratio: 1; display: grid; object-fit: cover; font-size: 9px; }
+.memory-cover-options label > span { display: block; padding: 6px; color: #66766d; font-size: 9px; text-align: center; }
+.journey-more { justify-self: center; }
+.journey-image-full, .dialog-panel .private-image-state.journey-image-full { width: 100%; max-height: 70vh; display: grid; border-radius: 14px; object-fit: contain; background: #edf2ed; }
+.journey-phase-form { display: grid; gap: 14px; }
+.journey-phase-form h2 { margin: 0; }
 
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); clip-path: inset(50%); white-space: nowrap; }
 .media-manager { min-width: 0; padding-top: 18px; border-top: 1px solid #e4ebe5; }
@@ -353,6 +425,10 @@ footer { margin-top: auto; padding-top: 48px; color: #8b9991; font-size: 12px; }
   .calendar-period-nav .icon-button { width: 42px; height: 42px; }
   .calendar-control-actions { display: grid; grid-template-columns: 1fr 1fr; }
   .calendar-control-actions button { min-height: 44px; }
+  .journey-controls { grid-template-columns: 1fr; }
+  .journey-controls .calendar-period-nav { grid-row: auto; }
+  .memory-year-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .memory-day-grid, .phase-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 760px) {
@@ -446,6 +522,21 @@ footer { margin-top: auto; padding-top: 48px; color: #8b9991; font-size: 12px; }
   .media-full-image, .dialog-panel .private-image-state.media-full-image { max-height: 50vh; }
   .media-viewer-actions { align-items: stretch; flex-direction: column-reverse; }
   .media-viewer-actions button { min-height: 44px; }
+  .journey-heading { align-items: stretch; flex-direction: column; }
+  .journey-heading .secondary-button { min-height: 44px; }
+  .journey-controls .secondary-button { min-height: 44px; }
+  .memory-year-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .memory-album-hero { grid-template-columns: 1fr; padding: 14px; }
+  .memory-hero-cover { max-height: 320px; }
+  .memory-day-grid, .phase-card-grid { grid-template-columns: 1fr; }
+  .memory-week-list .memory-day-card { grid-template-columns: 1fr; }
+  .memory-day-card { min-height: 0; }
+  .memory-day-main { min-height: 112px; }
+  .memory-day-detail .section-heading { align-items: stretch; flex-direction: column; }
+  .highlight-button { min-height: 44px; align-self: flex-start; }
+  .memory-day-images { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .memory-cover-options { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .inline-actions button { min-height: 44px; padding: 9px 0; }
 }
 
 @media (max-width: 410px) {

@@ -25,9 +25,12 @@ Lặp lại V1 gồm: không lặp, hằng ngày, hằng tuần chọn nhiều t
 
 ## Hành trình
 
-Timeline (dòng thời gian) theo năm/tháng/tuần/ngày giúp đọc lại công việc, ghi chú, ảnh và nhật ký; có thể đánh dấu khoảnh khắc nổi bật.
+Hành trình là Album ký ức chỉ đọc nhật ký ngày cùng ảnh/chú thích của nhật ký từ dữ liệu gốc. Task, trạng thái, note và ảnh task không xuất hiện trong Album hoặc bộ chọn bìa. Highlight task cũ được giữ tương thích trong database nhưng không hiển thị và không bị xóa hàng loạt.
 
-Một giai đoạn cá nhân gồm tên, khoảng ngày, ảnh bìa, lời giới thiệu và tổng kết. Giai đoạn liên kết đến dữ liệu gốc, không sao chép nhật ký.
+- Năm có tối đa 12 thẻ tháng gọn. Tháng có bìa/đoạn trích và tối đa 6 ngày xem trước; danh sách đầy đủ được phân trang. Tuần hiển thị các ngày có nội dung; Ngày đọc đầy đủ nhật ký, ảnh, chú thích và dẫn về editor hiện có.
+- Sáu ngày xem trước ưu tiên nhật ký nổi bật, sau đó phân bố ổn định theo thời gian và cuối cùng sắp tăng dần. Không chọn ngẫu nhiên hoặc lặp ngày.
+- Bìa tháng chỉ tham chiếu ảnh nhật ký hợp lệ trong tháng. Nếu không chọn thủ công, hệ thống ưu tiên ảnh của ngày nổi bật rồi ảnh đầu tiên theo thứ tự ổn định; không có ảnh thì dùng đoạn trích nguyên văn. Tiêu đề tùy chọn tối đa 100 ký tự, mặc định là tên tháng.
+- Một giai đoạn cá nhân gồm tên, khoảng ngày, ảnh bìa nhật ký tùy chọn, lời giới thiệu và tổng kết. Nội dung được phân trang và giai đoạn dài hơn 366 ngày vẫn mở được. Xóa thiết lập album/giai đoạn không xóa nhật ký hoặc ảnh nguồn.
 
 Hồ sơ và lời mở đầu cá nhân, video hồi tưởng và chia sẻ hành trình nằm sau V1.
 
@@ -47,6 +50,7 @@ Nhật ký và ảnh mặc định là riêng tư. Ảnh không dùng URL public
 - Bốn chế độ Lịch Năm/Tháng/Tuần/Ngày của chặng 3A đã được triển khai, kiểm chứng và người dùng duyệt.
 - Backend công việc lặp hữu hạn của chặng 3B.1 và giao diện tạo, nhận biết, thao tác một lần, dừng chuỗi của chặng 3B.2 đã được kiểm chứng và người dùng duyệt. Chặng 3B hoàn tất trong phạm vi V1 đã thống nhất; chưa hỗ trợ sửa hàng loạt quy tắc chuỗi.
 - Backend nhật ký văn bản theo ngày của chặng 4A đã được Codex kiểm chứng và người dùng duyệt về backend.
-- Giao diện nhật ký văn bản chặng 4B đã được kiểm chứng và người dùng duyệt. Backend ảnh 4C.1 có 46/46 test PASS và được người dùng duyệt. Giao diện ảnh 4C.2 đã đạt kiểm chứng kỹ thuật với backend/R2 test thật; người dùng đã thử trên máy tính và duyệt 4C.2 cùng lượt tinh gọn UI. Chặng 4C hoàn tất trong phạm vi nghiệm thu hiện tại. Kiểm thử điện thoại thật và chất lượng ảnh chụp điện thoại chưa PASS, phải hoàn thành trước phát hành. Hành trình đầy đủ, quên mật khẩu, xác minh email, đăng nhập Google, chỉnh hồ sơ và AI chưa được triển khai.
+- Giao diện nhật ký văn bản chặng 4B đã được kiểm chứng và người dùng duyệt. Backend ảnh 4C.1 có 46/46 test PASS và được người dùng duyệt. Giao diện ảnh 4C.2 đã đạt kiểm chứng kỹ thuật với backend/R2 test thật; người dùng đã thử trên máy tính và duyệt 4C.2 cùng lượt tinh gọn UI. Chặng 4C hoàn tất trong phạm vi nghiệm thu hiện tại. Kiểm thử điện thoại thật và chất lượng ảnh chụp điện thoại chưa PASS, phải hoàn thành trước phát hành.
+- Chặng 5 đã được thiết kế lại thành Album ký ức, đạt kiểm chứng kỹ thuật và được người dùng thử/duyệt trên máy tính: bốn chế độ, highlight nhật ký, thiết lập album tháng và CRUD giai đoạn. Không bao gồm task, hồ sơ, video, chia sẻ hoặc AI; điện thoại thật vẫn chưa kiểm tra.
 
 Chi tiết bằng chứng nằm trong [PROGRESS.md](PROGRESS.md); thứ tự triển khai nằm trong [ROADMAP.md](ROADMAP.md).

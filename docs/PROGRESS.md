@@ -484,3 +484,33 @@ Kết luận: chặng 2B đã được người dùng duyệt sau khi thử lạ
 - Thử trên ít nhất một điện thoại thật: đăng nhập, Hôm nay, bốn chế độ Lịch, task, journal, ảnh, các hộp thoại, bàn phím và cuộn; xác nhận không tràn ngang và vùng chạm sử dụng được.
 - Dùng ảnh chụp thật từ điện thoại để kiểm tra xoay ảnh, thumbnail, xem lớn, chú thích và chất lượng cảm quan sau WebP tối đa 2.560 px.
 - Ghi rõ thiết bị, trình duyệt và kết quả. Hiện cả hai mục trên là **CHƯA KIỂM TRA**, không phải PASS.
+
+## Chặng 5 — Hành trình
+
+### Mốc 4C.2 đã lưu
+
+- Người dùng đã duyệt 4C.2 và lượt tinh gọn UI sau khi thử trên máy tính. Frontend đã commit `91a6ca2` với message `feat: add private image UI and streamline mobile layouts` và push thành công lên `origin/main`.
+- Backend không có thay đổi 4C.2 nên không tạo commit rỗng. Kiểm thử điện thoại thật và chất lượng ảnh chụp điện thoại vẫn thuộc checklist bắt buộc trước phát hành.
+
+### Đã triển khai và được duyệt — chưa commit
+
+- Thiết kế cũ đã được thay bằng Album ký ức chỉ dùng journal và ảnh/chú thích journal. API, bộ chọn bìa và giao diện không trả/hiển thị task, trạng thái, note hoặc ảnh task; highlight task cũ được giữ tương thích nhưng không xuất hiện và không bị xóa hàng loạt.
+- Backend thêm tổng quan Năm/Tháng gọn, danh sách ngày phân trang, chi tiết ngày, metadata album unique theo user/năm/tháng và bìa thủ công/tự động. Sáu ngày xem trước ưu tiên highlight, phân bố ổn định theo thời gian, không lặp và sắp tăng dần.
+- Giai đoạn cá nhân chỉ dùng journal/ảnh journal trong khoảng, tải nội dung theo trang và mở được khoảng dài hơn 366 ngày. Xóa ảnh/journal nguồn dọn tham chiếu album/giai đoạn, nhưng không xóa nguồn khác.
+- Frontend có Album Năm/Tháng/Tuần/Ngày với bố cục riêng, mặc định tháng hiện tại, lịch sử Back/khôi phục vị trí, editor album tháng, highlight journal, ảnh private và CRUD giai đoạn ở khu vực phụ. Link sửa journal dùng lại editor của Lịch; request cũ bị hủy/bỏ qua.
+- Hồ sơ, video hồi tưởng, chia sẻ và AI không được thêm.
+
+### Kiểm chứng của Codex
+
+- Frontend `npm run typecheck`, `npm run lint`, `npm run build`: PASS trên source Album cuối; Vite build 41 modules thành công.
+- Backend `npm run typecheck`, `npm run lint`, `npm run build`: PASS. Toàn bộ `npm test`: **54/54 PASS**, 0 fail/cancelled/skipped/todo trên source cuối; trong đó suite Album ký ức **8/8 PASS** và suite media/R2 thật **8/8 PASS**. Lượt thành công dùng DNS mặc định, `daytrail_test` và `daytrail-media-test`.
+- Chrome headless dùng backend/frontend riêng `4022`/`5182`, DevTools `9336`, database `daytrail_test` và prefix R2 riêng. PASS: Năm → Tháng → Ngày → quay lại; 12 tháng; 6 ngày xem trước ổn định; đủ 8/8 ngày khi phân trang; highlight; tiêu đề/bìa thủ công → reload → tự động; xem ảnh lớn; giai đoạn dài và guard form.
+- Dữ liệu tổng hợp có task/ảnh task mang marker để kiểm tra rò rỉ; kết quả `taskLeaked=false`. Network trang Năm không tải ảnh full. Sau đăng nhập không có Console/runtime/Network lỗi; một HTTP 401 ban đầu là request `/api/auth/me` dự kiến khi chưa có phiên.
+- Responsive mô phỏng PASS ở 1.440, 768, 390 và 360 px: không tràn ngang trong Năm/Tháng/Ngày. Ảnh chụp desktop/mobile mô phỏng đã được kiểm tra trực quan; đây không phải kiểm thử điện thoại thật.
+- Đây là kiểm thử trình duyệt mô phỏng, không phải điện thoại thật. Checklist điện thoại thật trước phát hành vẫn mở.
+
+### Cleanup và trạng thái
+
+- Các lượt harness đầu lỗi do thứ tự tạo journal chỉ-ảnh và race selector; đây là lỗi harness, không phải lỗi sản phẩm. Dữ liệu mỗi lượt được dọn trước khi chạy lại. Có một lần kết nối cleanup mới gặp `MongoServerSelectionError` do TLS `secureConnect` timeout khoảng 13 giây; `/ready` của backend test phục hồi 200 trong kiểm tra hữu hạn nên không kết luận nguyên nhân DNS/mạng.
+- Cleanup cuối theo đúng user marker và prefix: đã xóa 8 object (gồm full/thumbnail), còn 0 object và 0 user test. Cổng `4022`, `5182`, `9336` đã đóng; script, log, Chrome profile tạm đã xóa. Server người dùng `4000`/`5173` không bị dừng. Sáu ảnh chụp nghiệm thu mô phỏng Năm/Tháng/Ngày ở desktop/mobile được giữ ngoài repo trong thư mục tạm để báo cáo.
+- **Chặng 5 đạt về kỹ thuật và đã được người dùng thử/duyệt Album ký ức trên máy tính.** Việc duyệt này không thay thế kiểm thử điện thoại thật và chất lượng ảnh điện thoại; hai mục đó vẫn CHƯA KIỂM TRA trong checklist trước phát hành. Tại thời điểm cập nhật dòng này, thay đổi Hành trình chưa commit/push/deploy.
