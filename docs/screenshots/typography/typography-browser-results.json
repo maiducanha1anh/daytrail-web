@@ -1,0 +1,104 @@
+{
+  "albumButton": {
+    "label": "Chỉnh album",
+    "hasSvg": true,
+    "height": 44,
+    "focused": true,
+    "overflow": false
+  },
+  "albumDialogOpened": true,
+  "editorFont": "\"Patrick Hand\", \"Segoe Print\", cursive",
+  "externalFonts": [],
+  "failedFonts": [],
+  "fontChecks": {
+    "ui": true,
+    "heading": true,
+    "handwriting": true
+  },
+  "fontResources": [
+    {
+      "name": "http://localhost:5175/src/assets/fonts/lora-400-700-latin.woff2",
+      "duration": 82.30000007152557,
+      "size": 300
+    },
+    {
+      "name": "http://localhost:5175/src/assets/fonts/be-vietnam-pro-400-vietnamese.woff2",
+      "duration": 82.29999995231628,
+      "size": 300
+    },
+    {
+      "name": "http://localhost:5175/src/assets/fonts/be-vietnam-pro-700-vietnamese.woff2",
+      "duration": 82.5,
+      "size": 300
+    },
+    {
+      "name": "http://localhost:5175/src/assets/fonts/be-vietnam-pro-400-latin.woff2",
+      "duration": 82.5,
+      "size": 300
+    },
+    {
+      "name": "http://localhost:5175/src/assets/fonts/be-vietnam-pro-700-latin.woff2",
+      "duration": 72.10000002384186,
+      "size": 300
+    },
+    {
+      "name": "http://localhost:5175/src/assets/fonts/lora-400-700-vietnamese.woff2",
+      "duration": 61.199999928474426,
+      "size": 300
+    },
+    {
+      "name": "http://localhost:5175/src/assets/fonts/patrick-hand-400-latin.woff2",
+      "duration": 41.5,
+      "size": 300
+    },
+    {
+      "name": "http://localhost:5175/src/assets/fonts/patrick-hand-400-vietnamese.woff2",
+      "duration": 35.09999990463257,
+      "size": 300
+    }
+  ],
+  "logErrors": [],
+  "phaseFont": "Lora, Georgia, \"Times New Roman\", serif",
+  "profileDesktop": {
+    "avatar": {},
+    "titleBottom": 164.265625,
+    "clipPath": "none",
+    "overflow": "visible",
+    "fullyVisible": true,
+    "handwriting": "\"Patrick Hand\", \"Segoe Print\", cursive"
+  },
+  "profileMobile": {
+    "avatar": {},
+    "overflow": false,
+    "visibleTop": true
+  },
+  "readerFont": "\"Patrick Hand\", \"Segoe Print\", cursive",
+  "responsive": [
+    {
+      "width": 360,
+      "overflow": false,
+      "bodyFont": "\"Be Vietnam Pro\", \"Segoe UI\", ui-sans-serif, system-ui, sans-serif",
+      "headingFont": "Lora, Georgia, \"Times New Roman\", serif"
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "bodyFont": "\"Be Vietnam Pro\", \"Segoe UI\", ui-sans-serif, system-ui, sans-serif",
+      "headingFont": "Lora, Georgia, \"Times New Roman\", serif"
+    },
+    {
+      "width": 768,
+      "overflow": false,
+      "bodyFont": "\"Be Vietnam Pro\", \"Segoe UI\", ui-sans-serif, system-ui, sans-serif",
+      "headingFont": "Lora, Georgia, \"Times New Roman\", serif"
+    },
+    {
+      "width": 1440,
+      "overflow": false,
+      "bodyFont": "\"Be Vietnam Pro\", \"Segoe UI\", ui-sans-serif, system-ui, sans-serif",
+      "headingFont": "Lora, Georgia, \"Times New Roman\", serif"
+    }
+  ],
+  "runtimeExceptions": [],
+  "visualDataSource": "local synthetic HTTP stub; no database writes"
+}

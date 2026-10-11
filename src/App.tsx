@@ -1,13 +1,21 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
-import { AuthPanel } from './AuthPanel'
+import { AuthPanel, type AuthMode } from './AuthPanel'
+import loginHero from './assets/auth/login-hero.webp'
+import loginHeroMobile from './assets/auth/login-hero-mobile.webp'
+import registerHero from './assets/auth/register-hero.webp'
+import registerHeroMobile from './assets/auth/register-hero-mobile.webp'
 import { ApiError, dayTrailApi, type DayTrailUser } from './api'
 import { CalendarPage } from './features/calendar/CalendarPage'
 import { JourneyPage } from './features/journey/JourneyPage'
+import { PrivateImage } from './features/media/PrivateImage'
+import { profileApi } from './features/profile/api'
+import { ProfilePage } from './features/profile/ProfilePage'
+import type { Profile } from './features/profile/types'
 import type { GuardRegistrar, NavigationGuard } from './navigation'
 import { TodayPage } from './features/today/TodayPage'
 
 type HealthState = 'checking' | 'ready' | 'degraded' | 'offline'
-type Section = 'Hôm nay' | 'Lịch' | 'Hành trình'
+type Section = 'Hôm nay' | 'Lịch' | 'Hành trình' | 'Hồ sơ'
 type SessionState =
   | { status: 'checking' }
   | { status: 'error'; message: string }
@@ -17,6 +25,7 @@ type SessionState =
 const sections: Section[] = ['Hôm nay', 'Lịch', 'Hành trình']
 
 function initialSection(): Section {
+  if (window.location.hash.startsWith('#profile')) return 'Hồ sơ'
   if (window.location.hash.startsWith('#journey')) return 'Hành trình'
   if (window.location.hash.startsWith('#calendar')) return 'Lịch'
   return 'Hôm nay'
@@ -59,9 +68,10 @@ function HealthBadge() {
   </span>
 }
 
-function BrandHeader({ actions }: { actions?: ReactNode }) {
+function BrandHeader({ actions, navigation }: { actions?: ReactNode; navigation?: ReactNode }) {
   return <header className="site-header">
     <div className="brand"><span className="mark" aria-hidden="true">D</span><span>DayTrail</span></div>
+    {navigation}
     <div className="header-actions"><HealthBadge />{actions}</div>
   </header>
 }
@@ -90,29 +100,56 @@ function SessionError({ message, onRetry }: { message: string; onRetry: () => vo
 }
 
 function GuestView({ message, onAuthenticated }: { message?: string; onAuthenticated: (user: DayTrailUser) => void }) {
+  const [mode, setMode] = useState<AuthMode>('login')
+  const content = mode === 'login'
+    ? {
+        description: 'Một nơi để sắp xếp hôm nay và giữ lại những điều đáng nhớ.',
+        eyebrow: 'Những ngày của bạn',
+        image: loginHero,
+        mobileDescription: 'Giữ lại những điều đáng nhớ.',
+        mobileImage: loginHeroMobile,
+        title: 'Mở lại những ngày của bạn.',
+      }
+    : {
+        description: 'Ghi lại suy nghĩ, lưu những bức ảnh và kể câu chuyện của mình.',
+        eyebrow: 'Một khởi đầu nho nhỏ',
+        image: registerHero,
+        mobileDescription: 'Câu chuyện của bạn bắt đầu từ hôm nay.',
+        mobileImage: registerHeroMobile,
+        title: 'Trang đầu tiên của riêng bạn.',
+      }
+
   return <main className="app auth-layout">
     <BrandHeader />
     <div className="auth-page">
       <section className="auth-intro" aria-labelledby="welcome-title">
-        <p className="eyebrow">Không gian cá nhân</p>
-        <h2 id="welcome-title">Mỗi ngày một bước tiến.</h2>
-        <p>Nơi công việc, nhật ký và hành trình của bạn được giữ cùng nhau — riêng tư theo từng tài khoản.</p>
-        <div className="foundation-note"><span aria-hidden="true">✦</span><span>Đăng nhập để xem công việc và kế hoạch theo ngày của riêng bạn.</span></div>
+        <div className="auth-intro-copy">
+          <p className="eyebrow">{content.eyebrow}</p>
+          <h2 id="welcome-title">{content.title}</h2>
+          <p className="auth-description auth-description-desktop">{content.description}</p>
+          <p className="auth-description auth-description-mobile">{content.mobileDescription}</p>
+        </div>
+        <picture className="auth-illustration" aria-hidden="true" key={mode}>
+          <source media="(max-width: 900px)" srcSet={content.mobileImage} />
+          <img src={content.image} alt="" width="1440" height="960" decoding="async" fetchPriority="high" />
+        </picture>
       </section>
-      <AuthPanel onAuthenticated={onAuthenticated} sessionMessage={message} />
+      <AuthPanel onAuthenticated={onAuthenticated} onModeChange={setMode} sessionMessage={message} />
     </div>
     <Footer />
   </main>
 }
 
-function AuthenticatedView({ user, onLogout, onSessionExpired, logoutError, loggingOut }: {
+function AuthenticatedView({ user, onLogout, onSessionExpired, onUserChanged, logoutError, loggingOut }: {
   user: DayTrailUser
   onLogout: () => void
   onSessionExpired: () => void
+  onUserChanged: (user: DayTrailUser) => void
   logoutError?: string
   loggingOut: boolean
 }) {
   const [section, setSection] = useState<Section>(() => initialSection())
+  const [profile, setProfile] = useState<Profile>()
   const [calendarJournalTarget, setCalendarJournalTarget] = useState<{ date: string; key: number }>()
   const navigationGuardsRef = useRef(new Set<NavigationGuard>())
 
@@ -133,11 +170,21 @@ function AuthenticatedView({ user, onLogout, onSessionExpired, logoutError, logg
     run(0)
   }, [])
 
+  useEffect(() => {
+    const controller = new AbortController()
+    void profileApi.get(controller.signal).then((result) => setProfile(result.profile)).catch((error: unknown) => {
+      if (error instanceof ApiError && error.status === 401) onSessionExpired()
+    })
+    return () => controller.abort()
+  }, [onSessionExpired])
+
   function selectSection(nextSection: Section) {
     if (nextSection === section) return
     requestNavigation(() => {
       if (nextSection === 'Lịch') setCalendarJournalTarget(undefined)
       setSection(nextSection)
+      if (nextSection === 'Hồ sơ') window.history.replaceState(null, '', '#profile')
+      else if (window.location.hash === '#profile') window.history.replaceState(null, '', '#')
     })
   }
 
@@ -148,16 +195,25 @@ function AuthenticatedView({ user, onLogout, onSessionExpired, logoutError, logg
     })
   }
 
+  const handleProfileSaved = useCallback((nextProfile: Profile) => {
+    setProfile(nextProfile)
+    if (nextProfile.displayName !== user.displayName) {
+      onUserChanged({ ...user, displayName: nextProfile.displayName, updatedAt: nextProfile.updatedAt })
+    }
+  }, [onUserChanged, user])
+
+  const profileButton = <button className="header-avatar-button" type="button" onClick={() => selectSection('Hồ sơ')} aria-label="Mở Góc của mình" aria-current={section === 'Hồ sơ' ? 'page' : undefined}>
+    {profile?.avatar ? <PrivateImage className="header-avatar" path={profile.avatar.thumbnailUrl} alt="Ảnh đại diện" onUnauthorized={onSessionExpired} showRetry={false} /> : <span className="header-avatar header-avatar-fallback" aria-hidden="true">{user.displayName.trim().charAt(0).toUpperCase()}</span>}
+  </button>
+
+  const navigation = <nav className="tabs" aria-label="Điều hướng chính">{sections.map((item) => <button key={item} type="button" className={section === item ? 'active' : ''} onClick={() => selectSection(item)} aria-current={section === item ? 'page' : undefined}>{item}</button>)}</nav>
+
   return <main className="app product-app">
-    <BrandHeader actions={<div className="account-actions">
-      <span className="user-name" title={user.email}>Xin chào, <strong>{user.displayName}</strong></span>
-      <button className="logout-button" type="button" onClick={() => requestNavigation(onLogout)} disabled={loggingOut}>{loggingOut ? 'Đang đăng xuất…' : 'Đăng xuất'}</button>
-    </div>} />
-    {logoutError && <div className="form-message error logout-error" role="alert">{logoutError}</div>}
-    <nav className="tabs" aria-label="Điều hướng chính">{sections.map((item) => <button key={item} type="button" className={section === item ? 'active' : ''} onClick={() => selectSection(item)} aria-current={section === item ? 'page' : undefined}>{item}</button>)}</nav>
+    <BrandHeader navigation={navigation} actions={profileButton} />
     {section === 'Hôm nay' && <TodayPage onOpenCalendar={() => selectSection('Lịch')} onUnauthorized={onSessionExpired} registerNavigationGuard={registerNavigationGuard} />}
     {section === 'Lịch' && <CalendarPage key={calendarJournalTarget?.key ?? 'calendar'} initialJournalDate={calendarJournalTarget?.date} onUnauthorized={onSessionExpired} registerNavigationGuard={registerNavigationGuard} requestNavigation={requestNavigation} />}
     {section === 'Hành trình' && <JourneyPage onEditJournal={openJournalFromJourney} onUnauthorized={onSessionExpired} registerNavigationGuard={registerNavigationGuard} />}
+    {section === 'Hồ sơ' && <ProfilePage loggingOut={loggingOut} logoutError={logoutError} onLogout={() => requestNavigation(onLogout)} onProfileSaved={handleProfileSaved} onUnauthorized={onSessionExpired} registerNavigationGuard={registerNavigationGuard} />}
     <Footer />
   </main>
 }
@@ -246,8 +302,12 @@ export function App() {
     }
   }
 
+  const handleUserChanged = useCallback((user: DayTrailUser) => {
+    setSession({ status: 'authenticated', user })
+  }, [])
+
   if (session.status === 'checking') return <SessionChecking />
   if (session.status === 'error') return <SessionError message={session.message} onRetry={restoreSession} />
   if (session.status === 'guest') return <GuestView message={session.message} onAuthenticated={handleAuthenticated} />
-  return <AuthenticatedView user={session.user} onLogout={handleLogout} onSessionExpired={handleSessionExpired} logoutError={logoutError} loggingOut={loggingOut} />
+  return <AuthenticatedView user={session.user} onLogout={handleLogout} onSessionExpired={handleSessionExpired} onUserChanged={handleUserChanged} logoutError={logoutError} loggingOut={loggingOut} />
 }

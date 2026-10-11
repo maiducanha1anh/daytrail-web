@@ -11,7 +11,7 @@ import type { Task } from './types'
 const priorityLabel = { low: 'Thấp', normal: 'Bình thường', high: 'Cao' } as const
 const repeatLabel = { daily: 'Hằng ngày', weekly: 'Hằng tuần', monthly: 'Hằng tháng' } as const
 
-export function TaskCollection({ acceptTask, allowCreate, date, error, loading, onPlanInCalendar, onSeriesChanged, onUnauthorized, registerNavigationGuard, reload, removeTask, tasks }: {
+export function TaskCollection({ acceptTask, allowCreate, date, error, loading, onPlanInCalendar, onSeriesChanged, onUnauthorized, registerNavigationGuard, reload, removeTask, showFilters = false, tasks }: {
   acceptTask: (task: Task) => void
   allowCreate?: boolean
   date: string
@@ -23,6 +23,7 @@ export function TaskCollection({ acceptTask, allowCreate, date, error, loading, 
   registerNavigationGuard?: GuardRegistrar
   reload: () => void
   removeTask: (id: string) => void
+  showFilters?: boolean
   tasks: Task[]
 }) {
   const [selectedTask, setSelectedTask] = useState<Task>()
@@ -32,6 +33,7 @@ export function TaskCollection({ acceptTask, allowCreate, date, error, loading, 
   const [deletingId, setDeletingId] = useState<string>()
   const [actionError, setActionError] = useState<string>()
   const [actionNotice, setActionNotice] = useState<string>()
+  const [filter, setFilter] = useState<'all' | 'incomplete' | 'completed'>('all')
   const deleteController = useRef<AbortController | undefined>(undefined)
 
   useEffect(() => () => deleteController.current?.abort(), [])
@@ -86,16 +88,23 @@ export function TaskCollection({ acceptTask, allowCreate, date, error, loading, 
     onSeriesChanged?.()
   }
 
+  const visibleTasks = tasks.filter((task) => filter === 'all' || (filter === 'completed' ? task.completed : !task.completed))
+
   return <>
+    {showFilters && <div className="task-filters" role="group" aria-label="Lọc công việc">
+      <button className={filter === 'all' ? 'active' : ''} type="button" onClick={() => setFilter('all')} aria-pressed={filter === 'all'}>Tất cả</button>
+      <button className={filter === 'incomplete' ? 'active' : ''} type="button" onClick={() => setFilter('incomplete')} aria-pressed={filter === 'incomplete'}>Chưa xong</button>
+      <button className={filter === 'completed' ? 'active' : ''} type="button" onClick={() => setFilter('completed')} aria-pressed={filter === 'completed'}>Hoàn thành</button>
+    </div>}
     {allowCreate && <div className="collection-toolbar"><button className="primary-button compact" type="button" onClick={() => setCreating(true)}>+ Tạo công việc</button></div>}
     {actionNotice && <div className="form-message success collection-notice" role="status">{actionNotice}</div>}
     {(error || actionError) && <div className="load-error" role="alert"><p>{actionError ?? error}</p><button className="secondary-button" type="button" onClick={() => { setActionError(undefined); reload() }}>Thử lại</button></div>}
-    {loading ? <div className="loading-block" aria-live="polite" aria-busy="true"><span className="spinner" aria-hidden="true" /><span>Đang tải công việc…</span></div> : tasks.length === 0 ? <div className="empty-state">
-      <span className="empty-icon" aria-hidden="true">✓</span><h3>Chưa có công việc trong ngày này</h3>
-      <p>{allowCreate ? 'Bắt đầu bằng một kế hoạch vừa sức cho ngày đã chọn.' : 'Hãy sang Lịch để lập kế hoạch cho hôm nay.'}</p>
+    {loading ? <div className="loading-block" aria-live="polite" aria-busy="true"><span className="spinner" aria-hidden="true" /><span>Đang tải công việc…</span></div> : visibleTasks.length === 0 ? <div className="empty-state">
+      <span className="empty-icon" aria-hidden="true">✓</span><h3>{tasks.length === 0 ? 'Chưa có công việc trong ngày này' : 'Không có công việc phù hợp bộ lọc'}</h3>
+      <p>{tasks.length === 0 ? (allowCreate ? 'Bắt đầu bằng một kế hoạch vừa sức cho ngày đã chọn.' : 'Hãy sang Lịch để lập kế hoạch cho hôm nay.') : 'Hãy chọn bộ lọc khác để xem các công việc còn lại.'}</p>
       {onPlanInCalendar && <button className="secondary-button" type="button" onClick={onPlanInCalendar}>Mở Lịch</button>}
     </div> : <ul className="task-list">
-      {tasks.map((task) => <li key={task.id} className={task.completed ? 'is-completed' : ''}>
+      {visibleTasks.map((task) => <li key={task.id} className={task.completed ? 'is-completed' : ''}>
         <button className="task-main" type="button" onClick={() => setSelectedTask(task)}>
           <span className="task-time">{task.startTime}<small>{task.endTime}</small></span>
           <span className="task-copy"><strong>{task.name}</strong><span>{task.group ?? 'Chưa phân nhóm'} · Ưu tiên {priorityLabel[task.priority].toLowerCase()} {task.recurrence && <em className="repeat-badge">↻ {repeatLabel[task.recurrence.frequency]}</em>}</span></span>

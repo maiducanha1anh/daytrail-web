@@ -1,6 +1,6 @@
 # DayTrail Web
 
-Frontend React + TypeScript + Vite của DayTrail. **Hôm nay** có công việc, nhật ký, ảnh private và tổng quan ngày. **Lịch** có bốn chế độ Năm/Tháng/Tuần/Ngày cùng công việc lặp. **Hành trình** là Album ký ức chỉ dùng nhật ký cùng ảnh/chú thích nhật ký; người dùng đã thử và duyệt trên máy tính.
+Frontend React + TypeScript + Vite của DayTrail. **Hôm nay** có công việc, nhật ký, ảnh private và tổng quan ngày. **Lịch** có bốn chế độ Năm/Tháng/Tuần/Ngày cùng công việc lặp. **Hành trình** là Album ký ức chỉ dùng nhật ký cùng ảnh/chú thích nhật ký. Avatar mở **Góc của mình**, nơi người dùng chỉnh hồ sơ và ảnh riêng tư.
 
 ## Chạy trên Windows
 
@@ -26,6 +26,7 @@ Mở `http://localhost:5173`. `VITE_API_BASE_URL` mặc định là `http://loca
 
 - Khi chưa có phiên: hiển thị form đăng nhập/đăng ký.
 - Khi đăng nhập thành công: hiển thị tên người dùng, công việc hôm nay và ba mục điều hướng.
+- Khi bấm avatar: mở **Góc của mình**; chỉnh tên, giới thiệu, mục tiêu, avatar và tối đa bốn ảnh trang trí. Đăng xuất nằm trong trang này.
 - Khi tải lại trang: `/api/auth/me` khôi phục phiên mà không hiện thoáng nội dung sai trạng thái.
 - Khi đăng xuất: quay về form đăng nhập.
 - Trong **Lịch**: chuyển giữa Năm/Tháng/Tuần/Ngày; tạo công việc một lần hoặc lặp ngày/tuần/tháng; sửa, chuyển ngày và xóa đúng một lần thực hiện.
@@ -56,6 +57,12 @@ Kết quả nghiệm thu chặng 4B: frontend `typecheck`, `lint`, `build` PASS.
 
 Kết quả kỹ thuật chặng 5 Album ký ức: frontend/backend `typecheck`, `lint`, `build` PASS; toàn bộ backend test **54/54 PASS**. Chrome headless dùng backend/frontend riêng `4022`/`5182`, `daytrail_test` và `daytrail-media-test`: Năm/Tháng/Tuần/Ngày, highlight journal, tiêu đề/bìa tháng, danh sách phân trang, giai đoạn và responsive 1440/768/390/360 px PASS. Trang Năm không tải ảnh full, task không rò vào Album và sau đăng nhập không có lỗi Console/runtime/Network. Đây là viewport mô phỏng, không thay checklist điện thoại thật trước phát hành.
 
+Kết quả kỹ thuật lượt giao diện tham chiếu và **Góc của mình**: frontend/backend `typecheck`, `lint`, `build` PASS; toàn bộ backend test **59/59 PASS**. Chrome headless kiểm tra 360/390/768/1024/1440 px, 0 tràn ngang, 0 runtime exception, lưu/reload hồ sơ, guard bản nháp, cách ly hai tài khoản và không lưu token/bản nháp trong Web Storage. Đây vẫn là kiểm thử trình duyệt mô phỏng; điện thoại thật chưa PASS.
+
+Người dùng đã duyệt giao diện hiện tại trên máy tính; các luồng chính đã được kiểm chứng tích hợp thật trên `daytrail_test` và `daytrail-media-test`. Quên mật khẩu, đổi mật khẩu và xác minh email chưa triển khai và là chặng tài khoản kế tiếp. Phiên bản hiện tại chưa deploy hoặc được xác nhận sẵn sàng phát hành công khai.
+
+Trước khi phát hành, thực hiện đầy đủ [checklist nghiệm thu V1](docs/RELEASE_CHECKLIST.md). Điện thoại thật, ảnh chụp điện thoại, backup/restore và production smoke test hiện chưa PASS.
+
 ## Kiểm tra thủ công luồng tài khoản và công việc
 
 Trong trình duyệt tại `http://localhost:5173`:
@@ -85,3 +92,4 @@ Nếu gặp lỗi, mở DevTools → Network, kiểm tra request `/api/auth/*` h
 - [Lộ trình](docs/ROADMAP.md)
 - [Hợp đồng API](docs/API_CONTRACT.md)
 - [Tiến độ và bằng chứng kiểm tra](docs/PROGRESS.md)
+- [Nguồn và giấy phép font tự phục vụ](src/assets/fonts/README.md)

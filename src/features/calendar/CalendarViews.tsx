@@ -79,7 +79,7 @@ export function MonthView({ acceptTask, error, loading, onOpenDay, onRetry, onSe
 }) {
   const cells = useMemo(() => monthCells(year, month), [month, year])
   const byDate = useMemo(() => summaryMap(summaries), [summaries])
-  return <div className="calendar-view-stack">
+  return <div className="calendar-view-stack month-calendar-split">
     <section className="content-card calendar-main-view" aria-labelledby="month-view-title">
       <div className="section-heading"><h2 id="month-view-title">{monthLabel(year, month)}</h2></div>
       <RangeFeedback error={error} loading={loading} onRetry={onRetry} />

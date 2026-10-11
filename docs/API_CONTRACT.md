@@ -518,6 +518,47 @@ HTTP 201 khi tạo, HTTP 200 khi gửi lại cùng journal (idempotent). `source
 
 Body tạo gồm `name` (1–120 ký tự), `startDate`, `endDate`, `coverImageId` (`null` hoặc ID ảnh journal private đã có), `introduction` (tối đa 2.000 ký tự) và `summary` (tối đa 5.000 ký tự). `endDate` không trước `startDate`. Backend xác nhận bìa là ảnh journal ready, thuộc user hiện tại và nằm trong khoảng giai đoạn; ảnh task, ngoài khoảng hoặc khác chủ trả 400. Xóa trực tiếp ảnh bìa hoặc journal chứa ảnh đó đặt `coverImageId` về `null` mà không xóa dữ liệu nguồn khác.
 
+## Góc của mình — hồ sơ riêng tư
+
+Mọi endpoint `/api/profile*` yêu cầu phiên hợp lệ và chỉ truy cập hồ sơ/ảnh của tài khoản hiện tại. Các thao tác ghi yêu cầu Origin hợp lệ; JSON dùng cho lưu/discard, còn upload dùng `multipart/form-data`. Response không trả `userId`, object key R2 hoặc URL public.
+
+### `GET /api/profile`
+
+Trả `{ "profile": { ... } }`. Hồ sơ gồm `displayName`, `tagline`, `about`, `aspiration`, `avatar`, `decorations`, `version`, `createdAt`, `updatedAt`. Tài khoản chưa từng lưu hồ sơ vẫn nhận dữ liệu rỗng hợp lệ với `version=0` và tên hiển thị hiện có.
+
+Mỗi ảnh trả metadata an toàn: `id`, `role`, `caption`, kích thước, `mimeType="image/webp"`, `version`, timestamp và hai đường dẫn API private `fullUrl`/`thumbnailUrl`.
+
+### `PUT /api/profile`
+
+Body đầy đủ:
+
+```json
+{
+  "displayName": "Tên hiển thị",
+  "tagline": "Một câu giới thiệu ngắn",
+  "about": "Lời giới thiệu",
+  "aspiration": "Điều đang hướng tới",
+  "avatarImageId": null,
+  "decorationImageIds": [],
+  "captions": {},
+  "version": 0
+}
+```
+
+Giới hạn lần lượt là 80, 160, 3.000 và 2.000 ký tự; tối đa bốn ảnh trang trí, caption tối đa 200 ký tự. Chỉ được gắn ảnh profile ready thuộc chính tài khoản và đúng role. Backend cập nhật tên trong `User` cùng hồ sơ bằng transaction rồi trả profile mới. Version cũ trả HTTP 409; client phải giữ bản nháp, đọc bản mới nhất và để người dùng quyết định trước khi lưu lại.
+
+### `POST /api/profile/images`
+
+Upload một trường `file`, `role=avatar|decoration`, `caption` tùy chọn và `clientUploadId` qua multipart. Chỉ nhận JPEG, PNG hoặc WebP tĩnh tối đa 8 MiB; backend kiểm tra bytes thật, xử lý orientation, bỏ EXIF và tạo WebP full/thumbnail. Cùng `clientUploadId` và payload trả lại ảnh cũ (HTTP 200), upload mới trả HTTP 201. Ảnh mới ở trạng thái tạm tối đa một giờ cho đến khi được gắn bằng `PUT /api/profile`.
+
+### `POST /api/profile/images/discard`
+
+Body `{ "imageIds": ["..."] }`, từ 1 đến 10 ID ảnh tạm thuộc tài khoản. HTTP 200 trả `cleanupStatus="deleted"`; HTTP 202 trả `cleanupStatus="pending"` khi worker cần retry R2. Không thể dùng endpoint này để xóa ảnh đang gắn vào hồ sơ.
+
+### `GET /api/profile/images/:imageId/file?variant=full|thumbnail`
+
+Backend kiểm tra session/chủ sở hữu rồi stream ảnh với `Cache-Control: private, no-store`. ID khác tài khoản hoặc không còn hợp lệ trả 404. Thiếu R2 hoặc R2 gián đoạn trả HTTP 503 với `MEDIA_STORAGE_UNAVAILABLE`; quá nhiều upload đồng thời trả 429.
+
 ## Database tạm thời không sẵn sàng
 
 Endpoint cần MongoDB trả HTTP 503 khi kết nối database bị gián đoạn:

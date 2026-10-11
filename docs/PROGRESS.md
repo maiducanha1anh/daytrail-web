@@ -492,7 +492,7 @@ Kết luận: chặng 2B đã được người dùng duyệt sau khi thử lạ
 - Người dùng đã duyệt 4C.2 và lượt tinh gọn UI sau khi thử trên máy tính. Frontend đã commit `91a6ca2` với message `feat: add private image UI and streamline mobile layouts` và push thành công lên `origin/main`.
 - Backend không có thay đổi 4C.2 nên không tạo commit rỗng. Kiểm thử điện thoại thật và chất lượng ảnh chụp điện thoại vẫn thuộc checklist bắt buộc trước phát hành.
 
-### Đã triển khai và được duyệt — chưa commit
+### Đã triển khai, được duyệt và đã lưu mốc
 
 - Thiết kế cũ đã được thay bằng Album ký ức chỉ dùng journal và ảnh/chú thích journal. API, bộ chọn bìa và giao diện không trả/hiển thị task, trạng thái, note hoặc ảnh task; highlight task cũ được giữ tương thích nhưng không xuất hiện và không bị xóa hàng loạt.
 - Backend thêm tổng quan Năm/Tháng gọn, danh sách ngày phân trang, chi tiết ngày, metadata album unique theo user/năm/tháng và bìa thủ công/tự động. Sáu ngày xem trước ưu tiên highlight, phân bố ổn định theo thời gian, không lặp và sắp tăng dần.
@@ -513,4 +513,79 @@ Kết luận: chặng 2B đã được người dùng duyệt sau khi thử lạ
 
 - Các lượt harness đầu lỗi do thứ tự tạo journal chỉ-ảnh và race selector; đây là lỗi harness, không phải lỗi sản phẩm. Dữ liệu mỗi lượt được dọn trước khi chạy lại. Có một lần kết nối cleanup mới gặp `MongoServerSelectionError` do TLS `secureConnect` timeout khoảng 13 giây; `/ready` của backend test phục hồi 200 trong kiểm tra hữu hạn nên không kết luận nguyên nhân DNS/mạng.
 - Cleanup cuối theo đúng user marker và prefix: đã xóa 8 object (gồm full/thumbnail), còn 0 object và 0 user test. Cổng `4022`, `5182`, `9336` đã đóng; script, log, Chrome profile tạm đã xóa. Server người dùng `4000`/`5173` không bị dừng. Sáu ảnh chụp nghiệm thu mô phỏng Năm/Tháng/Ngày ở desktop/mobile được giữ ngoài repo trong thư mục tạm để báo cáo.
-- **Chặng 5 đạt về kỹ thuật và đã được người dùng thử/duyệt Album ký ức trên máy tính.** Việc duyệt này không thay thế kiểm thử điện thoại thật và chất lượng ảnh điện thoại; hai mục đó vẫn CHƯA KIỂM TRA trong checklist trước phát hành. Tại thời điểm cập nhật dòng này, thay đổi Hành trình chưa commit/push/deploy.
+- **Chặng 5 đạt về kỹ thuật và đã được người dùng thử/duyệt Album ký ức trên máy tính.** Việc duyệt này không thay thế kiểm thử điện thoại thật và chất lượng ảnh điện thoại; hai mục đó vẫn CHƯA KIỂM TRA trong checklist trước phát hành. Chặng 5 sau đó đã được commit/push như ghi ở Chặng 6A; chưa deploy.
+
+## Chặng 6A — Chuẩn bị nghiệm thu trước phát hành
+
+### Đã hoàn tất
+
+- Chặng 5 đã được lưu: frontend commit `066908e`, backend commit `90db3d0`; cả hai đã push lên `origin/main` và đồng bộ 0 ahead/0 behind.
+- Đã audit cấu hình mẫu, script, health/readiness, CORS, cookie production, rate limit, xử lý 401/503 và bảo vệ bản nháp. Không phát hiện nhu cầu sửa source trong phạm vi audit.
+- Đã thêm [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) cho điện thoại thật, ảnh camera, lỗi mạng/database, cách ly tài khoản, bảo mật, backup/restore và smoke test production.
+- Điện thoại thật và chất lượng ảnh camera vẫn **CHƯA KIỂM TRA**. Không deploy và không dùng viewport mô phỏng để thay kết quả này.
+- Kiểm tra runtime cuối lượt không chạy được vì cổng người dùng `4000` và `5173` đều đang đóng. Codex không dừng hoặc tự mở server; checklist có hướng dẫn mở lại trên LAN khi người dùng bắt đầu kiểm thử điện thoại.
+
+### Quyết định còn thiếu trước phát hành
+
+- Backup/restore: cần chọn Atlas/R2 native backup hay export ứng dụng, tần suất, thời gian lưu, RPO/RTO và người được quyền restore.
+- Production: cần chọn hạ tầng frontend/backend, domain/HTTPS, proxy và cách quản lý secret/network access.
+- Thùng rác được hoãn sau V1. Các editor giữ lưu thủ công và guard bản nháp; không bổ sung tự lưu trong V1.
+
+Chặng 6 chưa hoàn tất. Chặng 6A là phần chuẩn bị nghiệm thu, không đồng nghĩa DayTrail đã sẵn sàng phát hành.
+
+## Chặng 6B — Đồng bộ giao diện tham chiếu và Góc của mình
+
+### Đã triển khai và được người dùng duyệt
+
+- Thiết lập token màu kem/xanh rừng/olive/sage, typography serif–sans, khung tối đa 1.360 px và header responsive hai hàng trên mobile. Không thêm bottom navigation và không dùng screenshot làm nền.
+- **Hôm nay** dùng hai cột trên desktop, xếp dọc trên mobile; có bộ lọc task, thao tác trực tiếp, tiến độ gọn và editor nhật ký/ảnh thật. **Lịch** giữ đủ Năm/Tháng/Tuần/Ngày, bố cục tháng lịch–chi tiết hai cột trên desktop. **Album ký ức** giữ đúng dữ liệu journal/ảnh journal và được đồng bộ hệ giao diện mới.
+- Bổ sung **Góc của mình** mở từ avatar. Frontend hỗ trợ xem/chỉnh/hủy/lưu, guard bản nháp, xung đột version, avatar, tối đa bốn ảnh trang trí và caption. Đăng xuất được chuyển vào hồ sơ; tên/avatar cập nhật header sau lưu và vẫn còn sau reload.
+- Backend thêm profile riêng tư, ảnh profile tách khỏi task/journal/Album, endpoint đọc/lưu/upload/discard/stream có kiểm tra chủ sở hữu. Upload dùng pipeline 8 MiB hiện có, idempotency, TTL ảnh tạm, cleanup retry và transaction chỉ bao quanh MongoDB.
+
+### Kiểm chứng của Codex
+
+- Frontend và backend: `npm run typecheck`, `npm run lint`, `npm run build` đều PASS trên source hiện tại.
+- Toàn bộ backend `npm test`: **59/59 PASS**, 7 suite, 0 fail/cancelled/skipped/todo. Riêng suite hồ sơ **5/5 PASS** trên `daytrail_test` và `daytrail-media-test`, bao phủ private access, idempotency, orientation/EXIF, cách ly hai tài khoản, HTTP 409, giới hạn bốn ảnh và cleanup.
+- Chrome headless dùng backend/frontend riêng `4100`/`5174` và DevTools `9222`: kiểm tra 360/390/768/1024/1440 px, 0 tràn ngang và 0 runtime exception. Luồng hồ sơ lưu → reload, guard bản nháp, cách ly hai tài khoản và Web Storage rỗng đều PASS.
+- Đã chụp tám ảnh đối chiếu Hôm nay/Lịch/Album/Góc của mình ở 1.440 px và 390 px trong `docs/screenshots/`. Đây là viewport mô phỏng, không phải điện thoại thật và không được mô tả là pixel-perfect.
+
+### Cleanup và phần còn mở
+
+- Browser test dùng dữ liệu/ảnh tổng hợp. Cleanup đã xóa đúng hai user test cùng dữ liệu liên quan; R2 còn 0 object dưới prefix của lượt chạy. Cổng `4100`, `5174`, `9222` đã đóng; script/profile Chrome tạm đã xóa. Server người dùng `4000`/`5173` không bị dừng.
+- Điện thoại thật, bàn phím ảo và chất lượng ảnh camera thật vẫn **CHƯA KIỂM TRA**; tiếp tục là checklist bắt buộc trước phát hành.
+- Giao diện và hồ sơ đã đạt kiểm chứng kỹ thuật, sau đó được người dùng thử và duyệt trên máy tính. Việc duyệt này không thay thế kiểm thử điện thoại thật, ảnh camera thật, backup/restore hoặc production smoke test; chưa deploy.
+
+### Tinh chỉnh typography và lỗi giao diện — đã được người dùng duyệt
+
+- Nguyên nhân lỗi dấu là hệ font cũ chỉ khai báo Georgia/Inter/system nhưng không nạp webfont có bộ glyph tiếng Việt nhất quán; một số weight phải fallback hoặc tổng hợp giữa các font. Đã tự phục vụ **Be Vietnam Pro** cho giao diện, **Lora** cho tiêu đề và **Patrick Hand** cho nội dung cá nhân; cả ba dùng giấy phép SIL Open Font License 1.1 được lưu cùng font.
+- Font viết tay được áp dụng cho editor và nội dung đã lưu của nhật ký, đoạn trích Album, giới thiệu/mục tiêu hồ sơ, chú thích ảnh và giới thiệu/tổng kết giai đoạn. Input trên mobile giữ tối thiểu 16 px; nội dung viết tay dùng khoảng 18–20 px và line-height thoáng.
+- Avatar bị cắt vì `clip-path` nằm trên chính `.profile-paper` trong khi avatar dùng margin âm. Phần giấy trang trí đã chuyển sang pseudo-element được clip riêng; nội dung và khung avatar giữ `overflow: visible`, không dùng z-index cực lớn để che nguyên nhân.
+- Nút album đổi thành **Chỉnh album**, dùng SVG bút thật, cao 44 px và đủ trạng thái hover/focus/active/disabled. Nút Sửa/Xóa giai đoạn và `.text-button` cũng được đồng bộ để không còn giao diện nút HTML mặc định.
+- Frontend `npm run typecheck`, `npm run lint`, `npm run build`: PASS sau thay đổi; Vite đã đóng gói đủ các file WOFF2.
+- Chrome headless kiểm tra viewport 360/390/768/1.440 px với dữ liệu tổng hợp qua HTTP stub cục bộ: font UI/heading/handwriting đều được trình duyệt xác nhận đã tải; không có request font ngoài, font lỗi, tràn ngang, Console error hoặc runtime exception. Avatar đủ viền ở desktop/mobile; nút **Chỉnh album** nhận focus, cao 44 px và mở đúng dialog. Editor và màn đọc sau reload đều render Patrick Hand. Đây là kiểm tra thị giác/hành vi frontend, **không phải kiểm thử tích hợp database**.
+- Backend test riêng buộc `daytrail_test`/`daytrail-media-test` không mở được cổng trong timeout 60 giây, dù Node DNS mặc định `192.168.0.1` phân giải SRV/TXT thành công; DNS preload tạm trong riêng tiến trình cũng không thay đổi kết quả. Không sửa DNS, URI, TLS hoặc source backend và không tạo dữ liệu/object test. Vì vậy luồng lưu thật qua MongoDB/R2 trong lượt typography này là **CHƯA KIỂM TRA**; kết quả tích hợp 59/59 và Chrome thật của chặng 6B vẫn là bằng chứng gần nhất vì backend/nghiệp vụ không đổi.
+- Ảnh đối chiếu mới được lưu trong `docs/screenshots/typography/`. Dữ liệu/ảnh đều tổng hợp, không chứa nội dung cá nhân. Điện thoại thật vẫn thuộc checklist trước phát hành.
+
+### Thiết kế lại phần giới thiệu Đăng nhập/Đăng ký — đã được người dùng duyệt
+
+- Giữ nguyên form, validation, quy tắc mật khẩu, API cookie session và các màn hình sau đăng nhập. `AuthPanel` chỉ phát trạng thái tab cho phần giới thiệu để tiêu đề, mô tả và minh họa đổi đồng bộ; đăng ký thành công vẫn chuyển về đăng nhập, điền lại email đã chuẩn hóa và xóa mật khẩu.
+- Thay khối giới thiệu cũ bằng hai bộ nội dung đã chốt. Desktop dùng hai cột; mobile dùng thứ tự logo → giới thiệu → ảnh thấp → form. Ở 360/390 px, đầu form lần lượt ở 300/315 px; ảnh cao 108/117 px, input tối thiểu 16 px và vùng bấm trong form tối thiểu 44 px.
+- Bốn asset WebP được tạo riêng, không chứa UI/chữ và không dùng dữ liệu cá nhân: desktop 1.440×960 (`login` 189.862 byte, `register` 245.494 byte); mobile 960×360 (`login` 61.548 byte, `register` 82.084 byte). Trình duyệt chỉ tải file ảnh thật của màn và breakpoint đang xem; các request `?import` trong Vite dev chỉ là module URL, không phải tải cả ảnh lớn.
+- Frontend `npm run typecheck`, `npm run lint`, `npm run build`: PASS. Lần build đầu trong sandbox lỗi `spawn EPERM`; chạy lại ngoài sandbox PASS, đây là giới hạn tiến trình con của môi trường kiểm tra chứ không phải lỗi source.
+- Chrome headless kiểm tra 360/390/768/1.024/1.440 px: không tràn ngang; tiếng Việt và ảnh không bị cắt khi xem trực quan; form dài cuộn được ở viewport thấp. Chuyển tab, Tab focus, Enter validation, hiện/ẩn mật khẩu, chặn gửi lặp, lỗi HTTP 500 và đăng ký thành công giả lập bằng chặn request trong trình duyệt đều PASS; Console/runtime/asset/font failure: 0.
+- Backend người dùng tại `4000` được tái sử dụng, `/api/health` và `/api/ready` trả 200; `/api/auth/me` trả 401 đúng trạng thái khách. Không tạo tài khoản hoặc dữ liệu thật. Luồng lỗi/đăng ký ở trên là kiểm tra UI bằng response giả lập có kiểm soát, không thay cho kiểm thử đăng ký/đăng nhập thật trên `daytrail_test`.
+- Bốn ảnh chụp thực tế được lưu trong `docs/screenshots/auth/`: đăng nhập/đăng ký ở desktop 1.440 px và mobile mô phỏng 390 px. Đây không phải kiểm thử điện thoại thật; checklist thiết bị thật trước phát hành vẫn mở.
+- Riêng lượt thiết kế lại phần giới thiệu tài khoản không thay đổi backend. Source frontend được giữ trong mốc giao diện đang chốt; chưa deploy.
+
+## Kiểm chứng tích hợp trước deploy — 11/10/2026
+
+- **Nguồn kiểm chứng Codex:** khởi chạy backend/frontend riêng tại `4101`/`5183`, hai Chrome context riêng tại DevTools `9233`/`9234`; không dùng mock/stub cho các luồng thành công. Runtime xác nhận đúng MongoDB `daytrail_test`, R2 `daytrail-media-test` và prefix riêng `daytrail/test/codex-ui-20261011-1201` trước khi ghi. `.env` người dùng và server development không bị sửa hoặc dừng.
+- Tài khoản A đăng ký, thử sai mật khẩu, đăng nhập, reload khôi phục phiên và xác nhận Local/Session Storage rỗng. Task tiếng Việt được tạo, sửa, hoàn thành, gắn note/ảnh, chuyển ngày, xuất hiện đúng ngày trong Lịch và còn nguyên sau reload.
+- Nhật ký nhiều dòng được lưu thủ công và đọc lại nguyên văn. Guard giữ bản nháp khi ở lại. Upload ảnh hợp lệ cùng file sai định dạng vẫn lưu ảnh đúng, báo lỗi file sai theo ngữ cảnh và không để hàng đợi thành công thừa. Thumbnail/ảnh full trả `image/webp` qua endpoint private; caption còn nguyên sau reload.
+- Album chỉ hiển thị journal/ảnh journal; ảnh task và ảnh hồ sơ không lọt vào Album hoặc bộ chọn bìa. Mở ngày/tháng, đánh dấu rồi bỏ đánh dấu nổi bật, tiêu đề album, bìa thủ công và trở lại bìa tự động đều được đối chiếu qua reload.
+- Hồ sơ lưu/reload tên, giới thiệu, mục tiêu, avatar, ảnh trang trí và caption. Hủy không đổi bản đã lưu; guard chặn điều hướng và giữ bản nháp. Tài khoản B không thấy task/journal/hồ sơ A; đọc/sửa/file private và gắn ảnh A vào Album/hồ sơ B đều bị từ chối, dữ liệu A không đổi. Kiểm thử DELETE trái chủ được bao phủ trong backend suite; lượt browser trực tiếp đã kiểm tra GET/PATCH/stream/gắn tham chiếu trái chủ.
+- Đăng xuất A làm request task/ảnh mới trả 401 và reload vẫn ở trạng thái khách. Console chỉ có các 401 được chủ động tạo trong phép thử logout/quyền; không ghi nhận runtime exception hoặc lỗi mạng ngoài dự kiến. Viewport 1.440, 390 và form 360 px không tràn ngang. Đây là mô phỏng trình duyệt, không thay kiểm thử điện thoại thật/bàn phím ảo.
+- Kiểm tra kỹ thuật trên source hiện tại: frontend và backend `typecheck`, `lint`, `build` đều PASS. Toàn bộ backend `npm test`: **59/59 PASS**, 7 suite, 0 fail/cancelled/skipped/todo; suite dùng MongoDB/R2 test thật.
+- Cleanup đã xóa đúng 10 tài khoản tổng hợp phát sinh qua các lượt điều khiển trình duyệt, 58 bản ghi liên quan và 44 object dưới prefix riêng. Xác nhận còn **0 bản ghi, 0 object** của marker. Các cổng `4101`, `5183`, `9233`, `9234` đã đóng; server người dùng không bị dừng.
+- **Kết luận:** các luồng tích hợp chính đạt trên môi trường test thật. Giao diện đã được người dùng duyệt trước lượt này. Điện thoại thật, bàn phím ảo, ảnh camera thật, backup/restore và production smoke test vẫn **CHƯA KIỂM TRA**; chưa đủ điều kiện tuyên bố sẵn sàng phát hành.
+- Quên mật khẩu, đổi mật khẩu và xác minh email vẫn **CHƯA TRIỂN KHAI**; đây là chặng tài khoản tiếp theo. Phiên bản hiện tại chưa deploy và chưa được xác nhận sẵn sàng phát hành công khai.

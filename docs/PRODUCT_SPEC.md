@@ -32,13 +32,15 @@ Hành trình là Album ký ức chỉ đọc nhật ký ngày cùng ảnh/chú t
 - Bìa tháng chỉ tham chiếu ảnh nhật ký hợp lệ trong tháng. Nếu không chọn thủ công, hệ thống ưu tiên ảnh của ngày nổi bật rồi ảnh đầu tiên theo thứ tự ổn định; không có ảnh thì dùng đoạn trích nguyên văn. Tiêu đề tùy chọn tối đa 100 ký tự, mặc định là tên tháng.
 - Một giai đoạn cá nhân gồm tên, khoảng ngày, ảnh bìa nhật ký tùy chọn, lời giới thiệu và tổng kết. Nội dung được phân trang và giai đoạn dài hơn 366 ngày vẫn mở được. Xóa thiết lập album/giai đoạn không xóa nhật ký hoặc ảnh nguồn.
 
-Hồ sơ và lời mở đầu cá nhân, video hồi tưởng và chia sẻ hành trình nằm sau V1.
+Video hồi tưởng và chia sẻ hành trình nằm sau V1.
 
 ## Tài khoản và dữ liệu
 
 Sản phẩm hỗ trợ đăng ký, đăng nhập, đăng xuất và khôi phục phiên. Mật khẩu phải được hash bằng thuật toán chuyên dụng; phiên phải an toàn; backend kiểm tra quyền sở hữu trên mỗi tài nguyên. Không lưu token đăng nhập trong `localStorage`.
 
-Nhật ký và ảnh mặc định là riêng tư. Ảnh không dùng URL public dài hạn; backend kiểm tra session/chủ sở hữu trước khi xem và chỉ khóa backend được truy cập object storage. Ngày cá nhân dùng múi giờ `Asia/Ho_Chi_Minh`, phân biệt ngày lịch, giờ địa phương và timestamp. Tự lưu, xử lý lỗi, thùng rác và sao lưu nằm trong lộ trình V1.
+**Góc của mình** là hồ sơ riêng tư của tài khoản: tên hiển thị tối đa 80 ký tự, câu giới thiệu 160 ký tự, lời giới thiệu 3.000 ký tự, điều đang hướng tới 2.000 ký tự, một avatar và tối đa bốn ảnh trang trí. Mỗi ảnh trang trí có chú thích tối đa 200 ký tự. Ảnh hồ sơ dùng chung pipeline private JPEG/PNG/WebP tĩnh tối đa 8 MiB, nhưng tách khỏi ảnh task/journal và không xuất hiện trong Album ký ức. Hồ sơ lưu thủ công, có version chống ghi đè hai tab và guard khi rời trang; bản nháp không nằm trong Web Storage.
+
+Nhật ký và ảnh mặc định là riêng tư. Ảnh không dùng URL public dài hạn; backend kiểm tra session/chủ sở hữu trước khi xem và chỉ khóa backend được truy cập object storage. Ngày cá nhân dùng múi giờ `Asia/Ho_Chi_Minh`, phân biệt ngày lịch, giờ địa phương và timestamp. DayTrail tiếp tục lưu thủ công và bảo vệ bản nháp. Thùng rác được hoãn sau V1; backup/restore vẫn là điều kiện trước phát hành.
 
 ## Trạng thái triển khai
 
@@ -52,5 +54,7 @@ Nhật ký và ảnh mặc định là riêng tư. Ảnh không dùng URL public
 - Backend nhật ký văn bản theo ngày của chặng 4A đã được Codex kiểm chứng và người dùng duyệt về backend.
 - Giao diện nhật ký văn bản chặng 4B đã được kiểm chứng và người dùng duyệt. Backend ảnh 4C.1 có 46/46 test PASS và được người dùng duyệt. Giao diện ảnh 4C.2 đã đạt kiểm chứng kỹ thuật với backend/R2 test thật; người dùng đã thử trên máy tính và duyệt 4C.2 cùng lượt tinh gọn UI. Chặng 4C hoàn tất trong phạm vi nghiệm thu hiện tại. Kiểm thử điện thoại thật và chất lượng ảnh chụp điện thoại chưa PASS, phải hoàn thành trước phát hành.
 - Chặng 5 đã được thiết kế lại thành Album ký ức, đạt kiểm chứng kỹ thuật và được người dùng thử/duyệt trên máy tính: bốn chế độ, highlight nhật ký, thiết lập album tháng và CRUD giai đoạn. Không bao gồm task, hồ sơ, video, chia sẻ hoặc AI; điện thoại thật vẫn chưa kiểm tra.
+- Lượt đồng bộ giao diện tham chiếu, **Góc của mình**, typography và phần minh họa đăng nhập/đăng ký đã được triển khai, kiểm chứng tích hợp với backend/database/R2 thật và được người dùng duyệt trên máy tính. Hồ sơ dùng ảnh private tách khỏi Album; điện thoại thật vẫn chưa kiểm tra.
+- Quên mật khẩu, đổi mật khẩu và xác minh email chưa được triển khai; đây là chặng tài khoản kế tiếp sau khi lưu mốc hiện tại.
 
 Chi tiết bằng chứng nằm trong [PROGRESS.md](PROGRESS.md); thứ tự triển khai nằm trong [ROADMAP.md](ROADMAP.md).

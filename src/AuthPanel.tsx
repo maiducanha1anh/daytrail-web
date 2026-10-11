@@ -1,11 +1,12 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { ApiError, dayTrailApi, type DayTrailUser } from './api'
 
-type AuthMode = 'login' | 'register'
+export type AuthMode = 'login' | 'register'
 type FieldErrors = Partial<Record<'confirmPassword' | 'displayName' | 'email' | 'password', string>>
 
 type AuthPanelProps = {
   onAuthenticated: (user: DayTrailUser) => void
+  onModeChange?: (mode: AuthMode) => void
   sessionMessage?: string
 }
 
@@ -65,7 +66,7 @@ function PasswordField({ autoComplete, error, id, label, onChange, value }: {
   </div>
 }
 
-export function AuthPanel({ onAuthenticated, sessionMessage }: AuthPanelProps) {
+export function AuthPanel({ onAuthenticated, onModeChange, sessionMessage }: AuthPanelProps) {
   const [mode, setMode] = useState<AuthMode>('login')
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
@@ -83,6 +84,7 @@ export function AuthPanel({ onAuthenticated, sessionMessage }: AuthPanelProps) {
   function switchMode(nextMode: AuthMode) {
     if (submittingRef.current || nextMode === mode) return
     setMode(nextMode)
+    onModeChange?.(nextMode)
     setPassword('')
     setConfirmPassword('')
     setFieldErrors({})
@@ -123,6 +125,7 @@ export function AuthPanel({ onAuthenticated, sessionMessage }: AuthPanelProps) {
         await dayTrailApi.register(displayName.trim(), email.trim().toLowerCase(), password, controller.signal)
         if (controller.signal.aborted) return
         setMode('login')
+        onModeChange?.('login')
         setEmail(email.trim().toLowerCase())
         setDisplayName('')
         setPassword('')

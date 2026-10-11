@@ -179,8 +179,8 @@ export function PhaseDialog({ onClose, onSaved, onUnauthorized, phase, registerN
       <label className="field"><span>Tên giai đoạn</span><input maxLength={120} value={draft.name} onChange={(event) => change('name', event.target.value)} /></label>
       <div className="form-grid two-columns"><label className="field"><span>Từ ngày</span><input type="date" value={draft.startDate} onChange={(event) => change('startDate', event.target.value)} /></label><label className="field"><span>Đến ngày</span><input type="date" value={draft.endDate} onChange={(event) => change('endDate', event.target.value)} /></label></div>
       <CoverChooser from={draft.startDate} to={draft.endDate} selected={draft.coverImageId} onChange={(value) => change('coverImageId', value)} onUnauthorized={onUnauthorized} />
-      <label className="field"><span>Lời giới thiệu</span><textarea rows={3} maxLength={2000} value={draft.introduction} onChange={(event) => change('introduction', event.target.value)} /></label>
-      <label className="field"><span>Tổng kết</span><textarea rows={4} maxLength={5000} value={draft.summary} onChange={(event) => change('summary', event.target.value)} /></label>
+      <label className="field handwriting-field"><span>Lời giới thiệu</span><textarea rows={3} maxLength={2000} value={draft.introduction} onChange={(event) => change('introduction', event.target.value)} /></label>
+      <label className="field handwriting-field"><span>Tổng kết</span><textarea rows={4} maxLength={5000} value={draft.summary} onChange={(event) => change('summary', event.target.value)} /></label>
       {error && <p className="form-message error" role="alert">{error}</p>}
       <div className="dialog-actions"><button className="secondary-button" type="button" disabled={busy} onClick={() => requestClose(onClose)}>Hủy</button><button className="primary-button" type="submit" disabled={busy}>{busy ? 'Đang lưu…' : 'Lưu giai đoạn'}</button></div>
     </form>

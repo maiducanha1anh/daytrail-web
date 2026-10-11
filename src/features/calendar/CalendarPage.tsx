@@ -133,7 +133,7 @@ export function CalendarPage({ initialJournalDate, onUnauthorized, registerNavig
   }
 
   return <div className="calendar-page page-stack">
-    <header className="page-heading calendar-page-heading"><div><p className="eyebrow">Lịch</p><h1>Lập kế hoạch</h1></div></header>
+    <header className="page-heading calendar-page-heading"><div><h1>Lịch</h1><p>Lập kế hoạch và xem lại từng khoảng thời gian.</p></div></header>
     {notice && <div className="form-message success page-notice" role="status">{notice}</div>}
     <button className="calendar-toggle" type="button" aria-expanded={calendarOpen} onClick={() => setCalendarOpen((open) => !open)}>{calendarOpen ? 'Thu gọn lịch chọn ngày' : 'Mở lịch chọn ngày'} · {monthLabel(miniMonth.year, miniMonth.month)}</button>
 

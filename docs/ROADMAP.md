@@ -54,9 +54,16 @@ Thiết kế lại Hành trình thành Album ký ức chỉ dùng nhật ký cù
 - CRUD giai đoạn gồm tên, khoảng ngày, bìa nhật ký, lời giới thiệu và tổng kết. Nội dung giai đoạn phân trang, kể cả khoảng dài hơn 366 ngày; xóa giai đoạn không xóa dữ liệu gốc.
 - Backend `typecheck`/`lint`/`build` và 54/54 test PASS. Browser test riêng đã kiểm tra 1.440/768/390/360 px, không tràn ngang và không tải ảnh full ở trang Năm. Kiểm thử điện thoại thật vẫn nằm trong checklist trước phát hành.
 
-## Chặng 6 — Hoàn thiện V1
+## Chặng 6 — Hoàn thiện V1 (đang thực hiện)
 
-Kiểm thử tổng thể, sao lưu, khôi phục, thùng rác và triển khai V1. Điều kiện nghiệm thu: checklist vận hành, bảo mật, backup/restore và smoke test production đều đạt.
+Hoàn thiện trải nghiệm, kiểm thử tổng thể, sao lưu/khôi phục và chuẩn bị production. Điều kiện nghiệm thu: checklist vận hành, bảo mật, backup/restore, điện thoại thật và smoke test production đều đạt.
+
+- 6A — Chuẩn bị nghiệm thu trước phát hành: đã lập checklist điện thoại thật, ảnh thật, lỗi mạng, quyền riêng tư và điều kiện phát hành.
+- 6B — Đồng bộ hệ giao diện tham chiếu và **Góc của mình**: source/API đã triển khai, đạt kiểm chứng tích hợp thật và được người dùng duyệt trên máy tính. Hồ sơ dùng ảnh private, lưu thủ công và version chống xung đột.
+- 6C — Hoàn thiện vòng đời tài khoản: chặng kế tiếp, chưa bắt đầu; gồm quên mật khẩu, đổi mật khẩu và xác minh email.
+- 6D — Backup/restore, production và smoke test: chưa bắt đầu; cần chốt RPO/RTO, hạ tầng/domain và cách quản lý secret trước khi thực hiện.
+
+Thùng rác được hoãn sau V1 và không chặn bản phát hành hiện tại. Không tự lưu; các editor tiếp tục dùng nút Lưu cùng guard bản nháp.
 
 Checklist bắt buộc trước phát hành còn mở:
 
@@ -64,4 +71,6 @@ Checklist bắt buộc trước phát hành còn mở:
 - Chụp hoặc chọn ảnh thật từ điện thoại, kiểm tra xoay ảnh, thumbnail, ảnh lớn, chú thích và chất lượng cảm quan sau khi xử lý WebP giới hạn 2.560 px.
 - Ghi thiết bị/trình duyệt và kết quả thực tế; không thay kiểm thử này bằng viewport mô phỏng trên máy tính.
 
-Hồ sơ/lời mở đầu cá nhân, video hồi tưởng, chia sẻ hành trình và AI nằm sau phạm vi V1, chưa được triển khai.
+Video hồi tưởng, chia sẻ hành trình và AI nằm sau phạm vi V1, chưa được triển khai.
+
+Các bước và mẫu bằng chứng nằm trong [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md).
