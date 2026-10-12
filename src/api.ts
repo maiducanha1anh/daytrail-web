@@ -2,12 +2,19 @@ export type DayTrailUser = {
   id: string
   displayName: string
   email: string
+  emailVerifiedAt: string | null
   createdAt: string
   updatedAt: string
 }
 
 type UserResponse = {
   user: DayTrailUser
+}
+
+export type AccountActionResponse = {
+  message: string
+  notificationEmailSent?: boolean
+  verificationEmailSent?: boolean
 }
 
 type ErrorResponse = {
@@ -113,6 +120,21 @@ export const dayTrailApi = {
     return apiRequest<UserResponse>('/api/auth/me', { signal })
   },
   register(displayName: string, email: string, password: string, signal?: AbortSignal) {
-    return jsonRequest<UserResponse>('/api/auth/register', { displayName, email, password }, signal)
+    return jsonRequest<UserResponse & { verificationEmailSent: boolean }>('/api/auth/register', { displayName, email, password }, signal)
+  },
+  requestPasswordReset(email: string, signal?: AbortSignal) {
+    return jsonRequest<AccountActionResponse>('/api/auth/password-reset/request', { email }, signal)
+  },
+  resetPassword(token: string, newPassword: string, signal?: AbortSignal) {
+    return jsonRequest<AccountActionResponse>('/api/auth/password-reset/confirm', { token, newPassword }, signal)
+  },
+  changePassword(currentPassword: string, newPassword: string, signal?: AbortSignal) {
+    return jsonRequest<AccountActionResponse>('/api/auth/password/change', { currentPassword, newPassword }, signal)
+  },
+  resendVerification(signal?: AbortSignal) {
+    return jsonRequest<AccountActionResponse>('/api/auth/email-verification/resend', {}, signal)
+  },
+  verifyEmail(token: string, signal?: AbortSignal) {
+    return jsonRequest<AccountActionResponse>('/api/auth/email-verification/confirm', { token }, signal)
   },
 }

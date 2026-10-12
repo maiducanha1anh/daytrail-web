@@ -35,7 +35,7 @@ Response không chứa URI, hostname, username, mật khẩu hoặc thông tin n
 - Email được `trim` và chuyển thành chữ thường.
 - Tên hiển thị được `trim`, dài từ 1 đến 80 ký tự.
 - Mật khẩu không được `trim` hoặc cắt ngầm: tối thiểu 12 ký tự, tối đa 72 byte UTF-8. Vi phạm trả HTTP 400.
-- User công khai gồm `id`, `displayName`, `email`, `createdAt`, `updatedAt`.
+- User công khai gồm `id`, `displayName`, `email`, `emailVerifiedAt`, `createdAt`, `updatedAt`. `emailVerifiedAt` là timestamp hoặc `null`; tài khoản cũ chưa có trường này vẫn đăng nhập được và được coi là chưa xác minh.
 - Register và login có rate limit (giới hạn số request). Vượt giới hạn trả HTTP 429.
 
 ## `POST /api/auth/register`
@@ -50,7 +50,7 @@ Tạo tài khoản và không tự đăng nhập.
 }
 ```
 
-- HTTP 201: `{ "user": { ... } }`; không có `Set-Cookie`.
+- HTTP 201: `{ "user": { ... }, "verificationEmailSent": true|false }`; không có `Set-Cookie`. Đăng ký vẫn thành công nếu SMTP gián đoạn; người dùng có thể đăng nhập rồi gửi lại email xác minh.
 - HTTP 400: dữ liệu không hợp lệ.
 - HTTP 409: email đã được sử dụng, kể cả khi hai request đồng thời.
 - HTTP 403/415/429: Origin sai, body không phải JSON hoặc vượt giới hạn request.
@@ -79,6 +79,64 @@ Cookie phiên có tên `daytrail_session`, dùng `HttpOnly`, `SameSite=Lax`, `Pa
 ## `POST /api/auth/logout`
 
 Gửi JSON, có thể là `{}`. API xóa session hiện tại nếu có, xóa cookie và trả HTTP 204. Gọi lại với cookie cũ vẫn trả HTTP 204; cookie/token cũ không thể dùng lại cho `/api/auth/me`.
+
+## Vòng đời mật khẩu và xác minh email
+
+Token hành động được tạo ngẫu nhiên bằng bộ sinh mật mã. MongoDB chỉ lưu SHA-256 của token, mục đích, user, email và thời hạn; token đặt lại mật khẩu không dùng được cho xác minh email và ngược lại. Response dùng `Cache-Control: no-store`, không trả token, cookie hoặc hash. Mọi request `POST` vẫn phải là JSON và qua kiểm tra Origin/rate limit như các API auth khác.
+
+### `POST /api/auth/password-reset/request`
+
+Body:
+
+```json
+{ "email": "user@example.com" }
+```
+
+Luôn trả HTTP 202 cùng một thông báo trung lập, bất kể email có tồn tại hoặc SMTP gửi lỗi:
+
+```json
+{ "message": "Nếu email này có tài khoản, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu." }
+```
+
+Mỗi IP + email chuẩn hóa có cooldown mặc định 60 giây; gửi quá nhanh trả HTTP 429. Link hợp lệ 30 phút. API không đưa email có/không có tài khoản vào response.
+
+### `POST /api/auth/password-reset/confirm`
+
+```json
+{
+  "token": "<token-trong-link-email>",
+  "newPassword": "<mat-khau-moi>"
+}
+```
+
+- HTTP 200 khi token đúng mục đích, còn hạn và chưa dùng. Backend đổi mật khẩu trong transaction, tăng phiên bản thông tin đăng nhập, thu hồi mọi session và token reset còn lại rồi xóa cookie hiện tại.
+- Mỗi token chỉ dùng một lần; hai request đồng thời chỉ có một request thành công. Token sai/hết hạn/đã dùng trả HTTP 400 với `code="TOKEN_INVALID_OR_EXPIRED"`.
+- Đặt lại mật khẩu không tự xác minh email và không tự đăng nhập. Email thông báo đổi mật khẩu gửi sau transaction; lỗi gửi thông báo không hoàn tác mật khẩu đã đổi.
+
+### `POST /api/auth/password/change`
+
+Yêu cầu session hợp lệ.
+
+```json
+{
+  "currentPassword": "<mat-khau-hien-tai>",
+  "newPassword": "<mat-khau-moi>"
+}
+```
+
+Mật khẩu hiện tại phải đúng, mật khẩu mới phải khác và tuân thủ giới hạn chung. Thành công HTTP 200, thu hồi mọi session trên mọi thiết bị và yêu cầu đăng nhập lại. Sai mật khẩu hiện tại trả HTTP 400; thay đổi đồng thời làm thông tin đăng nhập không còn mới nhất trả HTTP 409.
+
+### `POST /api/auth/email-verification/resend`
+
+Yêu cầu session hợp lệ, body `{}`. Email đã xác minh trả HTTP 200 mà không gửi thêm. Email chưa xác minh được gửi link mới hợp lệ 24 giờ; cooldown mặc định 60 giây, vượt ngưỡng trả HTTP 429. Nếu SMTP lỗi, HTTP 503 và link đã gửi thành công trước đó vẫn dùng được.
+
+### `POST /api/auth/email-verification/confirm`
+
+```json
+{ "token": "<token-trong-link-email>" }
+```
+
+Chỉ `POST` mới tiêu thụ token; mở hoặc preview URL không xác minh. Endpoint không yêu cầu đăng nhập, không đặt cookie và không chuyển tài khoản hiện đang đăng nhập. Thành công HTTP 200; token sai/hết hạn/đã dùng trả HTTP 400 với `code="TOKEN_INVALID_OR_EXPIRED"`. Xác minh chỉ cập nhật đúng user/email gắn với token.
 
 Hướng dẫn chạy thử bằng PowerShell nằm trong `C:\daytrail-api\README.md`.
 

@@ -59,7 +59,7 @@ Kết quả kỹ thuật chặng 5 Album ký ức: frontend/backend `typecheck`,
 
 Kết quả kỹ thuật lượt giao diện tham chiếu và **Góc của mình**: frontend/backend `typecheck`, `lint`, `build` PASS; toàn bộ backend test **59/59 PASS**. Chrome headless kiểm tra 360/390/768/1024/1440 px, 0 tràn ngang, 0 runtime exception, lưu/reload hồ sơ, guard bản nháp, cách ly hai tài khoản và không lưu token/bản nháp trong Web Storage. Đây vẫn là kiểm thử trình duyệt mô phỏng; điện thoại thật chưa PASS.
 
-Người dùng đã duyệt giao diện hiện tại trên máy tính; các luồng chính đã được kiểm chứng tích hợp thật trên `daytrail_test` và `daytrail-media-test`. Quên mật khẩu, đổi mật khẩu và xác minh email chưa triển khai và là chặng tài khoản kế tiếp. Phiên bản hiện tại chưa deploy hoặc được xác nhận sẵn sàng phát hành công khai.
+Người dùng đã duyệt giao diện hiện tại trên máy tính; các luồng chính đã được kiểm chứng tích hợp thật trên `daytrail_test` và `daytrail-media-test`. Chặng 6C đã hoàn tất quên/đặt lại mật khẩu, đổi mật khẩu và xác minh email. Ngày 12/10/2026, người dùng tự thử và duyệt cả ba luồng bằng backend thật, `daytrail_test` và Mailpit SMTP cục bộ. Đây không phải bằng chứng gửi email Internet hoặc production. Phiên bản hiện tại chưa deploy hoặc được xác nhận sẵn sàng phát hành công khai.
 
 Trước khi phát hành, thực hiện đầy đủ [checklist nghiệm thu V1](docs/RELEASE_CHECKLIST.md). Điện thoại thật, ảnh chụp điện thoại, backup/restore và production smoke test hiện chưa PASS.
 
@@ -77,12 +77,15 @@ Trong trình duyệt tại `http://localhost:5173`:
 8. Đăng xuất rồi đăng nhập tài khoản khác. Công việc của tài khoản trước không được xuất hiện.
 9. Mở DevTools → Application: không được có token hoặc mật khẩu trong Local Storage/Session Storage. Cookie phiên là `HttpOnly` nên JavaScript không đọc được.
 10. Trong **Lịch**, thử Năm/Tháng/Tuần/Ngày; dùng nút trước/sau và **Hôm nay**. Trên điện thoại, lịch chọn ngày phải mở/thu được và Tuần phải chuyển thành danh sách dọc.
-11. Chọn tháng 2 của năm nhuận và một tuần giao năm; ngày phải đúng, trang không tràn ngang. Ngày không có việc không được hiển thị 100% hoàn thành.
-12. Tạo chuỗi ngày, tuần nhiều thứ và tháng. Kiểm tra ngày kết thúc bắt buộc; chuỗi tháng ngày 31 phải bỏ qua tháng không có ngày 31.
-13. Mở một lần lặp để sửa/chuyển/xóa riêng lần đó. Mở chi tiết, kiểm tra thông tin chuỗi rồi chọn **Dừng lặp**; kết quả phải báo số lần loại bỏ và giữ lại.
-14. Viết nhật ký trong **Hôm nay**, lưu rồi mở đúng ngày đó ở **Lịch → Ngày**. Sửa và tải lại trang; nội dung, xuống dòng và khoảng trắng phải còn nguyên.
-15. Sửa nhật ký nhưng chưa lưu rồi đổi ngày/tab hoặc đăng xuất. Kiểm tra đủ ba lựa chọn: **Lưu và tiếp tục**, **Bỏ thay đổi**, **Tiếp tục chỉnh**.
-16. Mở cùng ngày ở hai tab, lưu thay đổi ở tab thứ nhất rồi lưu bản cũ ở tab thứ hai. Tab thứ hai phải giữ bản nháp, báo xung đột và cho đối chiếu bản mới nhất; không tự ghi đè.
+11. Ở đăng nhập, chọn **Quên mật khẩu**, nhập email rồi kiểm tra thông báo không tiết lộ tài khoản có tồn tại. Mở link email, đặt mật khẩu mới và xác nhận mật khẩu cũ không còn đăng nhập được.
+12. Trong **Góc của mình → Tài khoản**, gửi email xác minh và đổi mật khẩu. Sau khi đổi, mọi phiên phải bị thu hồi và DayTrail yêu cầu đăng nhập lại.
+13. Mở link xác minh/đặt lại ở cùng tab và tab mới. Token phải biến mất khỏi thanh địa chỉ sau khi ứng dụng đọc, không xuất hiện trong Local Storage/Session Storage.
+14. Chọn tháng 2 của năm nhuận và một tuần giao năm; ngày phải đúng, trang không tràn ngang. Ngày không có việc không được hiển thị 100% hoàn thành.
+15. Tạo chuỗi ngày, tuần nhiều thứ và tháng. Kiểm tra ngày kết thúc bắt buộc; chuỗi tháng ngày 31 phải bỏ qua tháng không có ngày 31.
+16. Mở một lần lặp để sửa/chuyển/xóa riêng lần đó. Mở chi tiết, kiểm tra thông tin chuỗi rồi chọn **Dừng lặp**; kết quả phải báo số lần loại bỏ và giữ lại.
+17. Viết nhật ký trong **Hôm nay**, lưu rồi mở đúng ngày đó ở **Lịch → Ngày**. Sửa và tải lại trang; nội dung, xuống dòng và khoảng trắng phải còn nguyên.
+18. Sửa nhật ký nhưng chưa lưu rồi đổi ngày/tab hoặc đăng xuất. Kiểm tra đủ ba lựa chọn: **Lưu và tiếp tục**, **Bỏ thay đổi**, **Tiếp tục chỉnh**.
+19. Mở cùng ngày ở hai tab, lưu thay đổi ở tab thứ nhất rồi lưu bản cũ ở tab thứ hai. Tab thứ hai phải giữ bản nháp, báo xung đột và cho đối chiếu bản mới nhất; không tự ghi đè.
 
 Nếu gặp lỗi, mở DevTools → Network, kiểm tra request `/api/auth/*` hoặc `/api/tasks*` và đối chiếu mã HTTP với [hợp đồng API](docs/API_CONTRACT.md). Không sao chép cookie hoặc thông tin đăng nhập khi gửi log hỗ trợ.
 

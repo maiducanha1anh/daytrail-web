@@ -102,6 +102,9 @@ Kiểm tra thumbnail, ảnh lớn, xoay đúng chiều, tỷ lệ không méo, c
 - R2 bucket vẫn private; frontend không chứa khóa R2 hoặc URL public dài hạn.
 - CORS chỉ cho đúng frontend origin; Origin sai bị từ chối ở request ghi.
 - Console, response và tài liệu không lộ URI, mật khẩu, token, cookie hoặc object key.
+- Quên mật khẩu trả cùng thông báo cho email tồn tại/không tồn tại; link hết hạn/đã dùng bị từ chối và không tự đăng nhập.
+- Đổi/đặt lại mật khẩu thu hồi mọi session; xác minh email không tự chuyển tài khoản đang đăng nhập.
+- Cấu hình SMTP production dùng TLS và secret phía backend; kiểm tra email text/HTML thực tế, link HTTPS/domain production, timeout và thông báo khi nhà cung cấp email gián đoạn.
 
 ## 7. Backup, khôi phục và production
 
@@ -121,5 +124,9 @@ Chỉ phát hành khi mọi mục bắt buộc có bằng chứng PASS, không c
 ## 9. Bằng chứng tích hợp gần nhất
 
 Ngày 11/10/2026, Codex đã chạy frontend/backend riêng trên `5183`/`4101`, hai browser context tách cookie, MongoDB `daytrail_test` và R2 `daytrail-media-test`. Đăng ký/đăng nhập/session, task/Lịch, journal/ảnh private, Album, hồ sơ, cách ly hai tài khoản, logout và viewport 1.440/390/360 px đều được kiểm tra với backend thật. Frontend/backend `typecheck`, `lint`, `build` PASS; backend test **59/59 PASS**. Cleanup còn 0 bản ghi và 0 object của marker test.
+
+Ngày 12/10/2026, Codex kiểm tra bổ sung chặng 6C bằng backend/frontend riêng `4015`/`5185`, MongoDB `daytrail_test` và email capture nội bộ: đăng ký, gửi lại/xác minh email, đổi mật khẩu, quên/đặt lại mật khẩu, thu hồi phiên, URL không còn token và Web Storage rỗng đều PASS. Toàn bộ backend **69/69 test PASS**; cleanup marker tài khoản còn 0 user/session/token/profile. SMTP thật bên ngoài vẫn **CHƯA KIỂM TRA**.
+
+Cũng trong ngày 12/10/2026, người dùng tự thử và duyệt đăng ký/xác minh email, quên/đặt lại mật khẩu và đổi mật khẩu/đăng nhập lại bằng backend thật, `daytrail_test` và Mailpit SMTP cục bộ. Cleanup marker `dtacct-20261012-a7f3c2-*` đã xóa đúng 3 user, 3 bản ghi liên quan và để lại 0 user/bản ghi/object; hộp thư capture cùng các tiến trình nghiệm thu đã dừng. Kết quả này không chứng minh khả năng gửi email Internet, vào inbox/spam hoặc hoạt động trên production.
 
 Kết quả này không đóng các mục bắt buộc còn mở: điện thoại thật và bàn phím ảo, chất lượng ảnh camera thật, backup/restore, cấu hình production/HTTPS và smoke test sau deploy.

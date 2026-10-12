@@ -60,7 +60,7 @@ Hoàn thiện trải nghiệm, kiểm thử tổng thể, sao lưu/khôi phục 
 
 - 6A — Chuẩn bị nghiệm thu trước phát hành: đã lập checklist điện thoại thật, ảnh thật, lỗi mạng, quyền riêng tư và điều kiện phát hành.
 - 6B — Đồng bộ hệ giao diện tham chiếu và **Góc của mình**: source/API đã triển khai, đạt kiểm chứng tích hợp thật và được người dùng duyệt trên máy tính. Hồ sơ dùng ảnh private, lưu thủ công và version chống xung đột.
-- 6C — Hoàn thiện vòng đời tài khoản: chặng kế tiếp, chưa bắt đầu; gồm quên mật khẩu, đổi mật khẩu và xác minh email.
+- 6C — Hoàn thiện vòng đời tài khoản: đã hoàn tất và được người dùng thử/duyệt cho quên/đặt lại mật khẩu, đổi mật khẩu và xác minh email trên backend thật, `daytrail_test` và Mailpit SMTP cục bộ. SMTP Internet và production chưa được kiểm chứng.
 - 6D — Backup/restore, production và smoke test: chưa bắt đầu; cần chốt RPO/RTO, hạ tầng/domain và cách quản lý secret trước khi thực hiện.
 
 Thùng rác được hoãn sau V1 và không chặn bản phát hành hiện tại. Không tự lưu; các editor tiếp tục dùng nút Lưu cùng guard bản nháp.

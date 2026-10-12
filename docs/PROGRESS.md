@@ -588,4 +588,30 @@ Chặng 6 chưa hoàn tất. Chặng 6A là phần chuẩn bị nghiệm thu, kh
 - Kiểm tra kỹ thuật trên source hiện tại: frontend và backend `typecheck`, `lint`, `build` đều PASS. Toàn bộ backend `npm test`: **59/59 PASS**, 7 suite, 0 fail/cancelled/skipped/todo; suite dùng MongoDB/R2 test thật.
 - Cleanup đã xóa đúng 10 tài khoản tổng hợp phát sinh qua các lượt điều khiển trình duyệt, 58 bản ghi liên quan và 44 object dưới prefix riêng. Xác nhận còn **0 bản ghi, 0 object** của marker. Các cổng `4101`, `5183`, `9233`, `9234` đã đóng; server người dùng không bị dừng.
 - **Kết luận:** các luồng tích hợp chính đạt trên môi trường test thật. Giao diện đã được người dùng duyệt trước lượt này. Điện thoại thật, bàn phím ảo, ảnh camera thật, backup/restore và production smoke test vẫn **CHƯA KIỂM TRA**; chưa đủ điều kiện tuyên bố sẵn sàng phát hành.
-- Quên mật khẩu, đổi mật khẩu và xác minh email vẫn **CHƯA TRIỂN KHAI**; đây là chặng tài khoản tiếp theo. Phiên bản hiện tại chưa deploy và chưa được xác nhận sẵn sàng phát hành công khai.
+- Phiên bản hiện tại chưa deploy và chưa được xác nhận sẵn sàng phát hành công khai.
+
+## Chặng 6C — Hoàn thiện vòng đời tài khoản
+
+### Đã triển khai
+
+- Backend thêm token một lần tách mục đích cho đặt lại mật khẩu và xác minh email. MongoDB chỉ lưu hash token; link reset hết hạn sau 30 phút, link xác minh sau 24 giờ.
+- Quên mật khẩu trả thông báo trung lập; gửi lại email có cooldown/rate limit. Xác minh chỉ thực hiện bằng `POST`, không tự đăng nhập và không đổi tài khoản hiện tại.
+- Đổi/đặt lại mật khẩu dùng transaction, tăng `credentialVersion` và thu hồi mọi session. Session tạo muộn với thông tin đăng nhập cũ cũng bị từ chối.
+- Frontend thêm **Quên mật khẩu**, màn đặt lại/xác minh từ link email và mục **Tài khoản** trong **Góc của mình**. Token chỉ giữ trong memory, bị xóa khỏi URL sau khi đọc và không lưu vào Web Storage.
+- Email có bản text/HTML, escape nội dung và adapter SMTP chỉ ở backend. `.env.example` dùng placeholder; không có secret trong source/tài liệu.
+
+### Kiểm chứng của Codex — 12/10/2026
+
+- Frontend `typecheck`, `lint`, `build`: PASS. Backend `typecheck`, `lint`, `build`: PASS.
+- Toàn bộ backend `npm test`: **69/69 PASS**, 8 suite, 0 fail/cancelled/skipped/todo; riêng vòng đời tài khoản 10/10 PASS trên `daytrail_test`.
+- Chrome headless với backend/frontend riêng `4015`/`5185` và email capture nội bộ: đăng ký → đăng nhập chưa xác minh → gửi lại/xác minh → đổi mật khẩu/đăng nhập lại → quên/đặt lại mật khẩu đều PASS. URL không còn token sau khi đọc, Local/Session Storage rỗng, không có runtime exception hoặc response lỗi ngoài 401 chủ động.
+- Phát hiện và sửa hai lỗi trong kiểm thử thật: projection login làm mất `displayName`/`email` khiến React crash; link email mở trong cùng tab không cập nhật state khi chỉ đổi hash.
+- Ảnh kiểm tra tổng hợp được lưu tại `docs/screenshots/account-security-desktop.png` và `docs/screenshots/account-security-mobile-390.png`. Viewport mobile là mô phỏng, không phải điện thoại thật.
+
+### Nghiệm thu, cleanup và phần còn mở
+
+- Dọn 10 user, 6 session và 8 account token mang marker `@codex-account-ui.test` từ các lượt Chrome, gồm lượt bị gián đoạn; kiểm tra sau dọn còn 0 user/session/token/profile. Cổng test `4015`, `5185`, `9235` và profile/script tạm đã được dọn; server người dùng không bị dừng.
+- Người dùng đã tự thử và duyệt ngày 12/10/2026: đăng ký/xác minh email, quên/đặt lại mật khẩu, đổi mật khẩu/đăng nhập lại. Phạm vi là backend thật, `daytrail_test` và Mailpit SMTP cục bộ; không có email được chuyển ra Internet.
+- Môi trường nghiệm thu marker `dtacct-20261012-a7f3c2-*` đã được dọn bằng script có rào chắn `daytrail_test` và `daytrail-media-test`: xóa đúng 3 user và 3 bản ghi liên quan; không có object R2 thuộc marker. Kiểm tra sau dọn còn **0 user, 0 bản ghi, 0 object**. Mailpit cùng backend/frontend nghiệm thu đã dừng; các cổng `1025`, `8025`, `4015`, `5185` đều trống. Công cụ và script tái sử dụng được giữ ngoài hai repo; log, state và hộp thư chứa token đã được xóa.
+- SMTP Internet, khả năng vào inbox/spam, link dùng domain HTTPS production và nội dung trên email client thật vẫn **CHƯA KIỂM TRA**. Chặng 6C đã được người dùng duyệt trong phạm vi SMTP cục bộ, không phải nghiệm thu production.
+- Điện thoại thật, bàn phím ảo, ảnh camera thật, backup/restore và production smoke test vẫn là checklist bắt buộc trước phát hành.

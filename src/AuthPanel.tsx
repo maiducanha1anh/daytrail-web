@@ -1,22 +1,18 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { ApiError, dayTrailApi, type DayTrailUser } from './api'
+import { passwordError } from './features/account/password'
 
 export type AuthMode = 'login' | 'register'
 type FieldErrors = Partial<Record<'confirmPassword' | 'displayName' | 'email' | 'password', string>>
 
 type AuthPanelProps = {
   onAuthenticated: (user: DayTrailUser) => void
+  onForgotPassword: () => void
   onModeChange?: (mode: AuthMode) => void
   sessionMessage?: string
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-function passwordError(password: string) {
-  if (Array.from(password).length < 12) return 'Mật khẩu phải có ít nhất 12 ký tự.'
-  if (new TextEncoder().encode(password).length > 72) return 'Mật khẩu không được vượt quá 72 byte UTF-8.'
-  return undefined
-}
 
 function requestError(error: unknown, mode: AuthMode) {
   if (!(error instanceof ApiError)) return 'Đã xảy ra lỗi không mong đợi. Vui lòng thử lại.'
@@ -28,7 +24,7 @@ function requestError(error: unknown, mode: AuthMode) {
   return error.message
 }
 
-function PasswordField({ autoComplete, error, id, label, onChange, value }: {
+export function PasswordField({ autoComplete, error, id, label, onChange, value }: {
   autoComplete: 'current-password' | 'new-password'
   error?: string
   id: string
@@ -66,7 +62,7 @@ function PasswordField({ autoComplete, error, id, label, onChange, value }: {
   </div>
 }
 
-export function AuthPanel({ onAuthenticated, onModeChange, sessionMessage }: AuthPanelProps) {
+export function AuthPanel({ onAuthenticated, onForgotPassword, onModeChange, sessionMessage }: AuthPanelProps) {
   const [mode, setMode] = useState<AuthMode>('login')
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
@@ -122,7 +118,7 @@ export function AuthPanel({ onAuthenticated, onModeChange, sessionMessage }: Aut
     controllerRef.current = controller
     try {
       if (mode === 'register') {
-        await dayTrailApi.register(displayName.trim(), email.trim().toLowerCase(), password, controller.signal)
+        const registration = await dayTrailApi.register(displayName.trim(), email.trim().toLowerCase(), password, controller.signal)
         if (controller.signal.aborted) return
         setMode('login')
         onModeChange?.('login')
@@ -131,7 +127,9 @@ export function AuthPanel({ onAuthenticated, onModeChange, sessionMessage }: Aut
         setPassword('')
         setConfirmPassword('')
         setFieldErrors({})
-        setNotice('Đăng ký thành công. Hãy đăng nhập bằng tài khoản vừa tạo.')
+        setNotice(registration.verificationEmailSent
+          ? 'Đăng ký thành công. DayTrail đã gửi email xác minh; bạn vẫn có thể đăng nhập ngay.'
+          : 'Đăng ký thành công. Email xác minh chưa gửi được; hãy đăng nhập và yêu cầu gửi lại trong Góc của mình.')
         return
       }
 
@@ -225,6 +223,8 @@ export function AuthPanel({ onAuthenticated, onModeChange, sessionMessage }: Aut
           error={fieldErrors.confirmPassword}
         />
       </>}
+
+      {mode === 'login' && <button className="auth-forgot-link" type="button" onClick={onForgotPassword} disabled={submitting}>Quên mật khẩu?</button>}
 
       <button className="primary-button" type="submit" disabled={submitting} aria-busy={submitting}>
         {submitting ? 'Đang xử lý…' : mode === 'login' ? 'Đăng nhập' : 'Tạo tài khoản'}

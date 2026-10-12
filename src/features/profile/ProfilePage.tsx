@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ApiError } from '../../api'
+import { ApiError, type DayTrailUser } from '../../api'
 import type { GuardRegistrar } from '../../navigation'
+import { AccountPanel } from '../account/AccountPanel'
 import { PrivateImage } from '../media/PrivateImage'
 import { DialogFrame } from '../tasks/DialogFrame'
 import { profileApi } from './api'
@@ -30,9 +31,11 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'Không thể hoàn tất thao tác.'
 }
 
-export function ProfilePage({ loggingOut, logoutError, onLogout, onProfileSaved, onUnauthorized, registerNavigationGuard }: {
+export function ProfilePage({ user, loggingOut, logoutError, onCredentialsChanged, onLogout, onProfileSaved, onUnauthorized, registerNavigationGuard }: {
+  user: DayTrailUser
   loggingOut: boolean
   logoutError?: string
+  onCredentialsChanged: (message: string) => void
   onLogout: () => void
   onProfileSaved: (profile: Profile) => void
   onUnauthorized: () => void
@@ -245,6 +248,7 @@ export function ProfilePage({ loggingOut, logoutError, onLogout, onProfileSaved,
 
     {editing && draft.decorations.length < 4 && <label className="profile-add-photo">＋ Thêm ảnh trang trí ({draft.decorations.length}/4)<input type="file" accept="image/jpeg,image/png,image/webp" disabled={uploading > 0} onChange={(event) => { void upload(event.target.files?.[0], 'decoration'); event.currentTarget.value = '' }} /></label>}
     {uploading > 0 && <p className="profile-upload-status" role="status">Đang xử lý ảnh riêng tư…</p>}
+    <AccountPanel blocked={blocked} onCredentialsChanged={onCredentialsChanged} user={user} />
     {!editing && <div className="profile-logout"><button className="logout-button" type="button" onClick={onLogout} disabled={loggingOut}>{loggingOut ? 'Đang đăng xuất…' : '↪ Đăng xuất'}</button>{logoutError && <p className="form-message error" role="alert">{logoutError}</p>}</div>}
 
     {pendingNavigation && <DialogFrame labelledBy="profile-unsaved-title" onClose={() => setPendingNavigation(undefined)}><h2 id="profile-unsaved-title">Hồ sơ còn thay đổi chưa lưu</h2><p>Hãy chọn cách xử lý trước khi rời Góc của mình.</p>{uploading > 0 && <p role="status">Đang tải {uploading} ảnh; vui lòng chờ hoàn tất.</p>}<div className="dialog-actions stacked-mobile"><button className="primary-button" type="button" disabled={saving || uploading > 0} onClick={() => void saveAndContinue()}>{saving ? 'Đang lưu…' : 'Lưu và tiếp tục'}</button><button className="secondary-button" type="button" disabled={saving || uploading > 0} onClick={() => void discardAndContinue()}>Bỏ thay đổi</button><button className="text-button" type="button" disabled={saving} onClick={() => setPendingNavigation(undefined)}>Tiếp tục chỉnh</button></div></DialogFrame>}

@@ -97,6 +97,11 @@ textarea { resize: vertical; }
 .primary-button.compact { width: auto; min-width: 130px; }
 .auth-alternate { margin: 22px 0 0; color: #6d7b74; text-align: center; font-size: 13px; }
 .auth-alternate button { min-height: 44px; border: 0; padding: 3px 6px; color: #4f7b3d; background: transparent; font-weight: 750; cursor: pointer; }
+.auth-forgot-link { justify-self: end; min-height: 44px; margin: -10px 0 -8px; border: 0; padding: 6px 0; color: var(--color-olive); background: transparent; font-weight: 700; cursor: pointer; }
+.account-access-card form { display: grid; gap: 18px; }
+.account-access-actions { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.account-access-actions .secondary-button { min-height: 44px; padding: 9px 14px; border: 1px solid var(--color-border); }
+.account-access-actions .text-button { min-height: 44px; }
 
 button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid rgba(78, 125, 58, .35); outline-offset: 2px; }
 
@@ -712,6 +717,19 @@ footer { margin-top: auto; padding-top: 48px; color: #8b9991; font-size: 12px; }
 .profile-upload-status, .profile-logout { text-align: center; }
 .profile-logout .logout-button { min-width: 150px; }
 .profile-conflict { margin-bottom: 18px; padding: 16px; border: 1px solid #d9b979; border-radius: 10px; background: #fff6df; }
+.profile-account { width: min(100%, 720px); margin: 42px auto 20px; padding: 24px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-paper); box-shadow: var(--shadow-soft); }
+.profile-account-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.profile-account-heading h2 { margin: 5px 0 0; font-size: 30px; }
+.profile-account-email { margin: 8px 0 20px; color: var(--color-muted); overflow-wrap: anywhere; }
+.verification-badge { flex: 0 0 auto; border-radius: 999px; padding: 7px 10px; color: #875d2c; background: #fff0cf; font-size: 12px; font-weight: 800; }
+.verification-badge.verified { color: #2f704a; background: #e5f3e6; }
+.verification-actions { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 22px; padding: 14px; border-radius: 9px; background: #f3f4ea; }
+.verification-actions p { margin: 0; color: #4f5e55; line-height: 1.55; }
+.verification-actions .secondary-button { flex: 0 0 auto; min-height: 44px; padding: 9px 13px; border: 1px solid #b8c5b4; }
+.password-change-form { display: grid; gap: 16px; padding-top: 20px; border-top: 1px solid var(--color-border); }
+.password-change-form h3 { margin: 0; font-size: 21px; }
+.password-change-form .primary-button { justify-self: start; }
+.profile-account-warning { margin: 0; color: #875d2c; font-size: 13px; line-height: 1.5; }
 
 @media (max-width: 1024px) {
   .product-app { padding-inline: 20px; }
@@ -766,4 +784,8 @@ footer { margin-top: auto; padding-top: 48px; color: #8b9991; font-size: 12px; }
   .profile-edit-actions { flex-direction: column-reverse; }
   .profile-edit-actions > * { width: 100%; }
   .album-edit-button { width: 100%; justify-content: center; }
+  .account-link-page .auth-intro { display: none; }
+  .profile-account { margin-top: 30px; padding: 18px 14px; }
+  .profile-account-heading, .verification-actions { align-items: flex-start; flex-direction: column; }
+  .verification-actions .secondary-button, .password-change-form .primary-button { width: 100%; }
 }

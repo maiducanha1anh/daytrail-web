@@ -5,6 +5,8 @@ import loginHeroMobile from './assets/auth/login-hero-mobile.webp'
 import registerHero from './assets/auth/register-hero.webp'
 import registerHeroMobile from './assets/auth/register-hero-mobile.webp'
 import { ApiError, dayTrailApi, type DayTrailUser } from './api'
+import { AccountLinkPanel, type AccountLink } from './features/account/AccountLinkPanel'
+import { ForgotPasswordPanel } from './features/account/ForgotPasswordPanel'
 import { CalendarPage } from './features/calendar/CalendarPage'
 import { JourneyPage } from './features/journey/JourneyPage'
 import { PrivateImage } from './features/media/PrivateImage'
@@ -23,6 +25,13 @@ type SessionState =
   | { status: 'authenticated'; user: DayTrailUser }
 
 const sections: Section[] = ['Hôm nay', 'Lịch', 'Hành trình']
+
+function initialAccountLink(): AccountLink | undefined {
+  const [route, query = ''] = window.location.hash.slice(1).split('?')
+  if (route !== 'reset-password' && route !== 'verify-email') return undefined
+  const token = new URLSearchParams(query).get('token') ?? undefined
+  return { kind: route === 'reset-password' ? 'reset' : 'verify', token }
+}
 
 function initialSection(): Section {
   if (window.location.hash.startsWith('#profile')) return 'Hồ sơ'
@@ -99,8 +108,9 @@ function SessionError({ message, onRetry }: { message: string; onRetry: () => vo
   </main>
 }
 
-function GuestView({ message, onAuthenticated }: { message?: string; onAuthenticated: (user: DayTrailUser) => void }) {
+function GuestView({ initialForgot = false, message, onAuthenticated }: { initialForgot?: boolean; message?: string; onAuthenticated: (user: DayTrailUser) => void }) {
   const [mode, setMode] = useState<AuthMode>('login')
+  const [forgot, setForgot] = useState(initialForgot)
   const content = mode === 'login'
     ? {
         description: 'Một nơi để sắp xếp hôm nay và giữ lại những điều đáng nhớ.',
@@ -134,14 +144,43 @@ function GuestView({ message, onAuthenticated }: { message?: string; onAuthentic
           <img src={content.image} alt="" width="1440" height="960" decoding="async" fetchPriority="high" />
         </picture>
       </section>
-      <AuthPanel onAuthenticated={onAuthenticated} onModeChange={setMode} sessionMessage={message} />
+      {forgot
+        ? <ForgotPasswordPanel onBack={() => setForgot(false)} />
+        : <AuthPanel onAuthenticated={onAuthenticated} onForgotPassword={() => setForgot(true)} onModeChange={setMode} sessionMessage={message} />}
     </div>
     <Footer />
   </main>
 }
 
-function AuthenticatedView({ user, onLogout, onSessionExpired, onUserChanged, logoutError, loggingOut }: {
+function AccountLinkView({ link, onBack, onRequestNewReset, onResetComplete }: {
+  link: AccountLink
+  onBack: () => void
+  onRequestNewReset: () => void
+  onResetComplete: (message: string) => void
+}) {
+  return <main className="app auth-layout">
+    <BrandHeader />
+    <div className="auth-page account-link-page">
+      <section className="auth-intro" aria-labelledby="account-link-intro-title">
+        <div className="auth-intro-copy">
+          <p className="eyebrow">Tài khoản riêng tư</p>
+          <h2 id="account-link-intro-title">Trở lại hành trình của bạn.</h2>
+          <p className="auth-description">Liên kết bảo mật chỉ được gửi qua email và chỉ dùng được một lần.</p>
+        </div>
+        <picture className="auth-illustration" aria-hidden="true">
+          <source media="(max-width: 900px)" srcSet={loginHeroMobile} />
+          <img src={loginHero} alt="" width="1440" height="960" decoding="async" />
+        </picture>
+      </section>
+      <AccountLinkPanel link={link} onBack={onBack} onRequestNewReset={onRequestNewReset} onResetComplete={onResetComplete} />
+    </div>
+    <Footer />
+  </main>
+}
+
+function AuthenticatedView({ user, onCredentialsChanged, onLogout, onSessionExpired, onUserChanged, logoutError, loggingOut }: {
   user: DayTrailUser
+  onCredentialsChanged: (message: string) => void
   onLogout: () => void
   onSessionExpired: () => void
   onUserChanged: (user: DayTrailUser) => void
@@ -213,7 +252,7 @@ function AuthenticatedView({ user, onLogout, onSessionExpired, onUserChanged, lo
     {section === 'Hôm nay' && <TodayPage onOpenCalendar={() => selectSection('Lịch')} onUnauthorized={onSessionExpired} registerNavigationGuard={registerNavigationGuard} />}
     {section === 'Lịch' && <CalendarPage key={calendarJournalTarget?.key ?? 'calendar'} initialJournalDate={calendarJournalTarget?.date} onUnauthorized={onSessionExpired} registerNavigationGuard={registerNavigationGuard} requestNavigation={requestNavigation} />}
     {section === 'Hành trình' && <JourneyPage onEditJournal={openJournalFromJourney} onUnauthorized={onSessionExpired} registerNavigationGuard={registerNavigationGuard} />}
-    {section === 'Hồ sơ' && <ProfilePage loggingOut={loggingOut} logoutError={logoutError} onLogout={() => requestNavigation(onLogout)} onProfileSaved={handleProfileSaved} onUnauthorized={onSessionExpired} registerNavigationGuard={registerNavigationGuard} />}
+    {section === 'Hồ sơ' && <ProfilePage user={user} loggingOut={loggingOut} logoutError={logoutError} onCredentialsChanged={onCredentialsChanged} onLogout={() => requestNavigation(onLogout)} onProfileSaved={handleProfileSaved} onUnauthorized={onSessionExpired} registerNavigationGuard={registerNavigationGuard} />}
     <Footer />
   </main>
 }
@@ -223,11 +262,27 @@ function Footer() {
 }
 
 export function App() {
+  const [accountLink, setAccountLink] = useState<AccountLink | undefined>(() => initialAccountLink())
+  const [openRecovery, setOpenRecovery] = useState(false)
   const [session, setSession] = useState<SessionState>({ status: 'checking' })
   const [loggingOut, setLoggingOut] = useState(false)
   const [logoutError, setLogoutError] = useState<string>()
   const requestIdRef = useRef(0)
   const controllerRef = useRef<AbortController | undefined>(undefined)
+
+  useEffect(() => {
+    if (!accountLink) return
+    window.history.replaceState(null, '', '#account-action')
+  }, [accountLink])
+
+  useEffect(() => {
+    const readLink = () => {
+      const nextLink = initialAccountLink()
+      if (nextLink) setAccountLink(nextLink)
+    }
+    window.addEventListener('hashchange', readLink)
+    return () => window.removeEventListener('hashchange', readLink)
+  }, [])
 
   const checkSession = useCallback((controller: AbortController, requestId: number) => {
     dayTrailApi.me(controller.signal)
@@ -273,6 +328,7 @@ export function App() {
     controllerRef.current?.abort()
     requestIdRef.current += 1
     setLogoutError(undefined)
+    setOpenRecovery(false)
     setSession({ status: 'authenticated', user })
   }
 
@@ -306,8 +362,40 @@ export function App() {
     setSession({ status: 'authenticated', user })
   }, [])
 
+  const handleCredentialsChanged = useCallback((message: string) => {
+    requestIdRef.current += 1
+    controllerRef.current?.abort()
+    setLogoutError(undefined)
+    setSession({ status: 'guest', message })
+  }, [])
+
+  function leaveAccountLink() {
+    setAccountLink(undefined)
+    setOpenRecovery(false)
+    window.history.replaceState(null, '', '#')
+    restoreSession()
+  }
+
+  function requestNewResetLink() {
+    setAccountLink(undefined)
+    setOpenRecovery(true)
+    window.history.replaceState(null, '', '#')
+    setSession({ status: 'guest' })
+  }
+
+  function finishPasswordReset(message: string) {
+    requestIdRef.current += 1
+    controllerRef.current?.abort()
+    setAccountLink(undefined)
+    setOpenRecovery(false)
+    window.history.replaceState(null, '', '#')
+    setSession({ status: 'guest', message })
+  }
+
+  if (accountLink) return <AccountLinkView link={accountLink} onBack={leaveAccountLink} onRequestNewReset={requestNewResetLink} onResetComplete={finishPasswordReset} />
+
   if (session.status === 'checking') return <SessionChecking />
   if (session.status === 'error') return <SessionError message={session.message} onRetry={restoreSession} />
-  if (session.status === 'guest') return <GuestView message={session.message} onAuthenticated={handleAuthenticated} />
-  return <AuthenticatedView user={session.user} onLogout={handleLogout} onSessionExpired={handleSessionExpired} onUserChanged={handleUserChanged} logoutError={logoutError} loggingOut={loggingOut} />
+  if (session.status === 'guest') return <GuestView initialForgot={openRecovery} message={session.message} onAuthenticated={handleAuthenticated} />
+  return <AuthenticatedView user={session.user} onCredentialsChanged={handleCredentialsChanged} onLogout={handleLogout} onSessionExpired={handleSessionExpired} onUserChanged={handleUserChanged} logoutError={logoutError} loggingOut={loggingOut} />
 }
