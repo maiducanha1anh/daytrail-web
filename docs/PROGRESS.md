@@ -637,3 +637,26 @@ Chặng 6 chưa hoàn tất. Chặng 6A là phần chuẩn bị nghiệm thu, kh
 - Cleanup dùng đúng user ID đã ghi nhận, không xóa rộng theo email: xóa 1 user, 1 bản ghi liên quan và 0 object; xác nhận còn 0 user, 0 bản ghi, 0 object thuộc lượt nghiệm thu. Backend/frontend `4016`/`5186`, state, record và log đã dừng/dọn; script tái sử dụng và file OAuth ngoài repo được giữ nguyên, không thu hồi quyền Gmail và không truy cập/xóa thư.
 - Google Cloud OAuth vẫn là External / Testing. Với scope Gmail, refresh token có thể hết hạn sau 7 ngày; Branding/publishing status chưa được thay đổi và chưa được coi là Production.
 - Kiểm thử điện thoại thật, ảnh camera thật, backup/restore, cấu hình production và smoke test vẫn **CHƯA KIỂM TRA**.
+
+## Chặng 6D.2 — Chuẩn bị bản thử trên Render
+
+### Đã chuẩn bị trong source và tài liệu
+
+- Pin Node.js `22.23.3` bằng `.node-version` cho cả hai repo. Backend có lệnh production `npm start`, dùng `PORT` của môi trường, bind `0.0.0.0`, tin cậy đúng một lớp proxy ở production và cho phép cấu hình timeout HTTP để upload ảnh 8 MiB trên mạng chậm.
+- Đã chuyển sang một Render Web Service từ repo backend. Build script fetch đúng frontend commit `14fc1b0c044c69f835998557c7aee4dfa131e9bd`, chạy `npm ci`/Vite, chỉ giữ artifact `dist` và xóa source tạm; không dùng `main` trôi nổi hoặc token trong URL.
+- Express phục vụ frontend build và `/api` trên cùng hostname `onrender.com`. API không tồn tại trả JSON 404; dotfile/source không được phục vụ. Cookie `HttpOnly`/`Secure`/`SameSite=Lax`, CSRF, CORS và quyền ảnh private không bị nới.
+- Frontend build dùng API base rỗng, còn mọi path client bắt đầu bằng `/api`; không thiếu hoặc lặp prefix. Hash route vẫn reload qua `/` nên không cần SPA catch-all.
+- Đã lập bảng runtime secrets, hai cách nạp Gmail OAuth, thứ tự tạo một dịch vụ, tách Atlas/R2 preview, backup/restore độc lập và rollback trong [hướng dẫn Render](RENDER_PREVIEW.md).
+
+### Kiểm chứng của Codex — 13/10/2026
+
+- Node.js thực tế là `v22.23.3`. Frontend và backend `typecheck`, `lint`, `build`: PASS trên source đã chuẩn bị cho Render.
+- Toàn bộ backend `npm test`: **81/81 PASS**, 11 suite, 0 fail/cancelled/skipped/todo. Suite xác nhận đúng `daytrail_test`; nhóm media dùng `daytrail-media-test`, còn 4 test mới kiểm tra static/API isolation. Không ghi vào database/bucket preview hoặc development.
+- Build đóng gói từ repo public không cần token: PASS. Fetch/check đúng full SHA, frontend build, kiểm tra artifact và xóa source tạm: PASS. Test static/API isolation: **4/4 PASS**.
+- Chưa thể kiểm tra URL HTTPS, cookie trên mobile, cold start, outbound CIDR, Gmail secret trên Render hoặc upload qua hạ tầng Render vì chưa tạo dịch vụ. Các mục này không được đánh dấu PASS.
+
+### Trạng thái
+
+- Đây mới là chuẩn bị cấu hình; **chưa tạo hoặc deploy** Web Service, Atlas preview hay bucket R2 preview. Không có URL online thật nào được ghi nhận.
+- Chưa chạy production smoke test, restore drill, điện thoại thật hoặc ảnh camera thật. OAuth Gmail vẫn External / Testing và refresh token chưa được coi là giải pháp vận hành lâu dài.
+- Custom domain không bắt buộc cho phương án một origin. Sau khi Render cấp URL thật, cần đặt chính xác URL đó vào `FRONTEND_ORIGIN` và `FRONTEND_BASE_URL`; không đặt `VITE_API_BASE_URL`.

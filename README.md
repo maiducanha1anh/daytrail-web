@@ -95,4 +95,5 @@ Nếu gặp lỗi, mở DevTools → Network, kiểm tra request `/api/auth/*` h
 - [Lộ trình](docs/ROADMAP.md)
 - [Hợp đồng API](docs/API_CONTRACT.md)
 - [Tiến độ và bằng chứng kiểm tra](docs/PROGRESS.md)
+- [Chuẩn bị bản thử trên Render](docs/RENDER_PREVIEW.md)
 - [Nguồn và giấy phép font tự phục vụ](src/assets/fonts/README.md)
