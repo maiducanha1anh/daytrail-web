@@ -615,3 +615,25 @@ Chặng 6 chưa hoàn tất. Chặng 6A là phần chuẩn bị nghiệm thu, kh
 - Môi trường nghiệm thu marker `dtacct-20261012-a7f3c2-*` đã được dọn bằng script có rào chắn `daytrail_test` và `daytrail-media-test`: xóa đúng 3 user và 3 bản ghi liên quan; không có object R2 thuộc marker. Kiểm tra sau dọn còn **0 user, 0 bản ghi, 0 object**. Mailpit cùng backend/frontend nghiệm thu đã dừng; các cổng `1025`, `8025`, `4015`, `5185` đều trống. Công cụ và script tái sử dụng được giữ ngoài hai repo; log, state và hộp thư chứa token đã được xóa.
 - SMTP Internet, khả năng vào inbox/spam, link dùng domain HTTPS production và nội dung trên email client thật vẫn **CHƯA KIỂM TRA**. Chặng 6C đã được người dùng duyệt trong phạm vi SMTP cục bộ, không phải nghiệm thu production.
 - Điện thoại thật, bàn phím ảo, ảnh camera thật, backup/restore và production smoke test vẫn là checklist bắt buộc trước phát hành.
+
+## Chặng 6D.1 — Chuẩn bị Gmail API qua HTTPS
+
+### Đã triển khai trong source và bắt đầu nghiệm thu Gmail thật
+
+- Backend thêm provider `gmail_api` bên cạnh `smtp` và `disabled`; `EMAIL_PROVIDER` chọn rõ một provider và không có fallback khi gửi lỗi.
+- Gmail API dùng OAuth2 refresh token, MIME RFC 2822 base64url và `users.messages.send` qua HTTPS. From lấy từ cấu hình backend cố định; request DayTrail không được tự chọn địa chỉ gửi.
+- Provider không retry tự động khi kết quả chưa rõ. Log chỉ dùng mã lỗi an toàn cho `invalid_grant`, xác thực/quyền, quota/429, mạng, timeout và 5xx.
+- Công cụ `npm run gmail:authorize` đọc Desktop OAuth credentials ngoài repo, mở trình duyệt hệ thống, bind callback vào `127.0.0.1` trên cổng khả dụng, dùng state + PKCE S256 và chỉ xin scope `gmail.send`. File authorized-user được lưu ngoài repo, không ghi đè file có sẵn và được giới hạn quyền đọc trên Windows.
+- Hỗ trợ Render bằng Environment Secrets hoặc Secret File; không phụ thuộc đường dẫn Windows và không đưa secret vào `VITE_*`.
+
+### Trạng thái kiểm chứng
+
+- Credentials tại `C:\daytrail-secrets\gmail-oauth-client.json` đã được kiểm tra an toàn: file tồn tại, đúng cấu trúc Desktop app và có các trường bắt buộc; không có giá trị bí mật nào được in.
+- Backend `typecheck`, `lint`, `build`: PASS. Unit test provider email/Gmail API: **8/8 PASS**; toàn bộ backend: **77/77 PASS**, 10 suite, 0 fail/cancelled/skipped/todo trên lượt hoàn chỉnh cuối. Test MIME mới giải mã rồi so sánh nguyên văn subject, text và HTML tiếng Việt của thư xác minh và đặt lại mật khẩu.
+- Lượt full test đầu có 68 PASS và 8 test auth bị hủy vì hook kết nối gặp `MongooseServerSelectionError`; không có assertion FAIL. Suite auth sau đó 8/8 PASS và toàn bộ suite chạy lại 76/76 PASS. Gmail test chỉ dùng mock HTTPS, không gửi thư ra ngoài.
+- OAuth đã được người dùng cấp cho địa chỉ gửi cố định, chỉ scope `gmail.send`. Email Internet đầu tiên đến được hộp thư nhưng tiếng Việt thành dấu `?`; nguyên nhân được xác nhận là Windows PowerShell 5.1 dùng `$OutputEncoding=us-ascii` trong lệnh thử, làm hỏng chuỗi trước khi Node/Gmail provider nhận dữ liệu, không phải lỗi charset của MIME provider.
+- Ngày 13/10/2026, Codex gửi đúng một email kiểm tra UTF-8 mới bằng cấu hình tiến trình riêng và Gmail API đã chấp nhận request, không retry. Người dùng xác nhận thư vào Inbox và subject/nội dung tiếng Việt hiển thị đúng dấu.
+- Người dùng tự nghiệm thu bằng backend thật, Gmail API thật, `daytrail_test` và `daytrail-media-test`: đăng ký/xác minh email, quên/đặt lại mật khẩu, đổi mật khẩu, đăng nhập lại và từ chối dùng lại liên kết đều đạt. Đây là kiểm thử local với email Internet thật, chưa phải production hoặc điện thoại thật.
+- Cleanup dùng đúng user ID đã ghi nhận, không xóa rộng theo email: xóa 1 user, 1 bản ghi liên quan và 0 object; xác nhận còn 0 user, 0 bản ghi, 0 object thuộc lượt nghiệm thu. Backend/frontend `4016`/`5186`, state, record và log đã dừng/dọn; script tái sử dụng và file OAuth ngoài repo được giữ nguyên, không thu hồi quyền Gmail và không truy cập/xóa thư.
+- Google Cloud OAuth vẫn là External / Testing. Với scope Gmail, refresh token có thể hết hạn sau 7 ngày; Branding/publishing status chưa được thay đổi và chưa được coi là Production.
+- Kiểm thử điện thoại thật, ảnh camera thật, backup/restore, cấu hình production và smoke test vẫn **CHƯA KIỂM TRA**.

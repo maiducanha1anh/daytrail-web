@@ -104,7 +104,10 @@ Kiểm tra thumbnail, ảnh lớn, xoay đúng chiều, tỷ lệ không méo, c
 - Console, response và tài liệu không lộ URI, mật khẩu, token, cookie hoặc object key.
 - Quên mật khẩu trả cùng thông báo cho email tồn tại/không tồn tại; link hết hạn/đã dùng bị từ chối và không tự đăng nhập.
 - Đổi/đặt lại mật khẩu thu hồi mọi session; xác minh email không tự chuyển tài khoản đang đăng nhập.
-- Cấu hình SMTP production dùng TLS và secret phía backend; kiểm tra email text/HTML thực tế, link HTTPS/domain production, timeout và thông báo khi nhà cung cấp email gián đoạn.
+- Chọn đúng một email provider. Nếu dùng Gmail API trên Render: secret chỉ ở backend, scope chỉ `gmail.send`, From cố định, refresh token hoạt động, MIME text/HTML tiếng Việt đúng và link dùng HTTPS/domain production.
+- Kiểm tra email Internet thực sự đến địa chỉ nhận được chỉ định, phân biệt Gmail API chấp nhận request với thư đã tới inbox/spam. Kiểm tra timeout, quota/429, `invalid_grant`, quyền thiếu, 5xx và lỗi mạng không làm lộ secret hoặc tự retry gây thư trùng.
+- Kiểm tra trực tiếp subject, text, HTML và nút hành động tiếng Việt trên email client thật. Lệnh thử không được pipe source Unicode qua Windows PowerShell 5.1 với `$OutputEncoding=us-ascii`; test tự động phải giải mã MIME và so sánh nguyên văn.
+- Khi OAuth External còn ở trạng thái Testing, ghi ngày cấp quyền và kiểm tra lại sau tối đa 7 ngày; không coi refresh token là lâu dài hoặc app đã Production.
 
 ## 7. Backup, khôi phục và production
 
@@ -128,5 +131,7 @@ Ngày 11/10/2026, Codex đã chạy frontend/backend riêng trên `5183`/`4101`,
 Ngày 12/10/2026, Codex kiểm tra bổ sung chặng 6C bằng backend/frontend riêng `4015`/`5185`, MongoDB `daytrail_test` và email capture nội bộ: đăng ký, gửi lại/xác minh email, đổi mật khẩu, quên/đặt lại mật khẩu, thu hồi phiên, URL không còn token và Web Storage rỗng đều PASS. Toàn bộ backend **69/69 test PASS**; cleanup marker tài khoản còn 0 user/session/token/profile. SMTP thật bên ngoài vẫn **CHƯA KIỂM TRA**.
 
 Cũng trong ngày 12/10/2026, người dùng tự thử và duyệt đăng ký/xác minh email, quên/đặt lại mật khẩu và đổi mật khẩu/đăng nhập lại bằng backend thật, `daytrail_test` và Mailpit SMTP cục bộ. Cleanup marker `dtacct-20261012-a7f3c2-*` đã xóa đúng 3 user, 3 bản ghi liên quan và để lại 0 user/bản ghi/object; hộp thư capture cùng các tiến trình nghiệm thu đã dừng. Kết quả này không chứng minh khả năng gửi email Internet, vào inbox/spam hoặc hoạt động trên production.
+
+Ngày 13/10/2026, backend `typecheck`, `lint`, `build` và toàn bộ **77/77 test PASS**; suite email 8/8 PASS, gồm giải mã MIME UTF-8 nguyên văn. Người dùng xác nhận email Gmail thật vào Inbox và hiển thị đúng dấu; đăng ký/xác minh, quên/đặt lại mật khẩu, đổi mật khẩu, đăng nhập lại và liên kết dùng một lần đều đạt trên môi trường local `daytrail_test`/`daytrail-media-test`. Cleanup theo đúng user ID còn 0 user/bản ghi/object. Kết quả này không thay thế production smoke test, điện thoại thật hoặc phương án OAuth lâu dài.
 
 Kết quả này không đóng các mục bắt buộc còn mở: điện thoại thật và bàn phím ảo, chất lượng ảnh camera thật, backup/restore, cấu hình production/HTTPS và smoke test sau deploy.
