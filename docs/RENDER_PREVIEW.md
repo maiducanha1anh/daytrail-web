@@ -71,7 +71,8 @@ Không có biến build-time frontend bắt buộc. Không đặt secret trong `
 | `FRONTEND_ORIGIN` | Có | `https://<ten-dich-vu>.onrender.com` | Origin chính xác do Render cấp, không có dấu `/` cuối. |
 | `FRONTEND_BASE_URL` | Có | `https://<ten-dich-vu>.onrender.com` | Tạo link xác minh/reset cùng origin. |
 | `FRONTEND_DIST_DIR` | Tùy chọn | `render-frontend-dist` | Mặc định đã là giá trị này; chỉ đổi khi đổi quy trình build. |
-| `MONGODB_URI` | Có, secret | `mongodb+srv://<user>:<password>@<preview-cluster>/daytrail?...` | Atlas riêng cho bản thử; database phải là `daytrail`. |
+| `MONGODB_DATABASE` | Có | `daytrail_preview` | Tên database ứng dụng online; cấu hình ứng dụng không cho phép dùng `daytrail_test`. |
+| `MONGODB_URI` | Có, secret | `mongodb+srv://<user>:<password>@<cluster-host>/daytrail_preview?...` | Pathname phải ghi rõ `/daytrail_preview` và khớp chính xác `MONGODB_DATABASE`. |
 | `EMAIL_PROVIDER` | Có | `gmail_api` | Không fallback sang SMTP. |
 | `GMAIL_SENDER_EMAIL` | Có | `<gmail-gui-thu>` | From cố định ở backend. |
 | `GMAIL_API_TIMEOUT_MS` | Khuyến nghị | `10000` | Timeout Gmail API. |
@@ -102,7 +103,7 @@ OAuth vẫn External / Testing; refresh token có thể hết hạn sau khoảng
 
 ## 6. Dữ liệu preview và quyền mạng
 
-- Dùng Atlas cluster/project preview riêng; database vẫn tên `daytrail` để khớp rào chắn source. User chỉ có `readWrite` trên database này.
+- Dùng database `daytrail_preview` trong cluster Atlas hiện có. Tạo database user riêng và chỉ cấp `readWrite` trên `daytrail_preview`; không cấp quyền trên `daytrail` hoặc `daytrail_test`.
 - Dùng bucket private `daytrail-media-preview` và token chỉ có quyền cần thiết trên bucket đó.
 - Không dùng `daytrail_test`, `daytrail-media-test` hoặc script cleanup test cho bản online.
 - Sau khi tạo Web Service, lấy toàn bộ CIDR tại **Connect → Outbound** rồi thêm đúng các CIDR đó vào Atlas IP Access List. Không mở `0.0.0.0/0`.

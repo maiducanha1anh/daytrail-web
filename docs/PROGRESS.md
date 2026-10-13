@@ -651,7 +651,7 @@ Chặng 6 chưa hoàn tất. Chặng 6A là phần chuẩn bị nghiệm thu, kh
 ### Kiểm chứng của Codex — 13/10/2026
 
 - Node.js thực tế là `v22.23.3`. Frontend và backend `typecheck`, `lint`, `build`: PASS trên source đã chuẩn bị cho Render.
-- Toàn bộ backend `npm test`: **81/81 PASS**, 11 suite, 0 fail/cancelled/skipped/todo. Suite xác nhận đúng `daytrail_test`; nhóm media dùng `daytrail-media-test`, còn 4 test mới kiểm tra static/API isolation. Không ghi vào database/bucket preview hoặc development.
+- Toàn bộ backend `npm test`: **87/87 PASS**, 12 suite, 0 fail/cancelled/skipped/todo. Sáu test cấu hình xác nhận mặc định `daytrail`, chấp nhận `daytrail_preview` khi URI khớp, từ chối URI thiếu/sai database và không cho cấu hình ứng dụng dùng `daytrail_test`. Guard integration test xác nhận đúng `daytrail_test`; nhóm media dùng `daytrail-media-test`. Không kết nối hoặc ghi vào `daytrail`/`daytrail_preview`.
 - Build đóng gói từ repo public không cần token: PASS. Fetch/check đúng full SHA, frontend build, kiểm tra artifact và xóa source tạm: PASS. Test static/API isolation: **4/4 PASS**.
 - Chưa thể kiểm tra URL HTTPS, cookie trên mobile, cold start, outbound CIDR, Gmail secret trên Render hoặc upload qua hạ tầng Render vì chưa tạo dịch vụ. Các mục này không được đánh dấu PASS.
 
